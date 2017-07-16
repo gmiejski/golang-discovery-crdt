@@ -2,25 +2,18 @@ package main
 
 import (
 	"org/miejski/discovery"
-	"fmt"
 	"net/http"
+	"org/miejski/domain"
 )
 
 func main() {
 
-
 	discovery_client := discovery.NewDiscoveryClient()
 
-	discovery_client.CurrentActiveNodes()
-	fmt.Println(discovery_client.CurrentActiveNodes())
+	dk := domain.UnsafeDomainKeeper()
 
-	http.HandleFunc("/status", handleRequest)
+	state_controller := newStateController(&discovery_client, &dk)
+
+	http.HandleFunc("/status", state_controller.Status)
 	http.ListenAndServe(":8080", nil)
-}
-
-func handleRequest(writer http.ResponseWriter, request *http.Request) {
-	switch request.Method {
-	case "GET":
-
-	}
 }

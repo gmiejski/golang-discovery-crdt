@@ -61,3 +61,5 @@ fabric.properties
 
 bin
 pkg
+/crdt-app
+.idea
