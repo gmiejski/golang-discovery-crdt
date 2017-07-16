@@ -9,6 +9,7 @@ import (
 
 type StateController interface {
 	Status(writer http.ResponseWriter, request *http.Request)
+	Increment(writer http.ResponseWriter, request *http.Request)
 }
 
 func newStateController(
@@ -27,4 +28,8 @@ type StateControllerImpl struct {
 func (c *StateControllerImpl) Status(w http.ResponseWriter, request *http.Request) {
 	value := c.stateKeeper.Get()
 	fmt.Fprintf(w, "%d", value)
+}
+
+func (c *StateControllerImpl) Increment(w http.ResponseWriter, request *http.Request) {
+	c.stateKeeper.Add()
 }
