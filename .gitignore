@@ -63,3 +63,6 @@ bin
 pkg
 /crdt-app
 .idea
+
+/performance/.venv
+performance/__pycache__/
