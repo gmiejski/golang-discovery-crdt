@@ -10,6 +10,7 @@ import (
 type StateController interface {
 	Status(writer http.ResponseWriter, request *http.Request)
 	Increment(writer http.ResponseWriter, request *http.Request)
+	Reset(writer http.ResponseWriter, request *http.Request)
 }
 
 func methodCheck(method string, handler func(w http.ResponseWriter, request *http.Request)) func(w http.ResponseWriter, request *http.Request) {
@@ -51,4 +52,8 @@ func (c *StateControllerImpl) Status(w http.ResponseWriter, request *http.Reques
 
 func (c *StateControllerImpl) Increment(w http.ResponseWriter, request *http.Request) {
 	c.stateKeeper.Add()
+}
+
+func (c *StateControllerImpl) Reset(w http.ResponseWriter, request *http.Request) {
+	c.stateKeeper.Reset()
 }

@@ -5,9 +5,10 @@ type DomainValue int
 type DomainKeeper interface {
 	Add()
 	Get() DomainValue
+	Reset()
 }
 
-func UnsafeDomainKeeper() DomainKeeper{
+func UnsafeDomainKeeper() DomainKeeper {
 	return &unsafeDomainKeeper{}
 }
 
@@ -21,4 +22,8 @@ func (dk *unsafeDomainKeeper) Add() {
 
 func (dk *unsafeDomainKeeper) Get() DomainValue {
 	return dk.value
+}
+
+func (dk *unsafeDomainKeeper) Reset() {
+	dk.value = 0
 }

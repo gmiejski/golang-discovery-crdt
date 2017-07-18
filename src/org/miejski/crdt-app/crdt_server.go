@@ -26,7 +26,7 @@ func (server *crdtServerImpl) Start(port int) {
 	srv := &http.Server{Addr: fmt.Sprintf(":%d", port)}
 	http.HandleFunc("/status", GET(server.state_controller.Status))
 	http.HandleFunc("/status/update", POST(server.state_controller.Increment))
-	http.HandleFunc("/status/reset", POST(server.state_controller.Status))
+	http.HandleFunc("/status/reset", POST(server.state_controller.Reset))
 	fmt.Println("Starting server")
 	log.Fatal(srv.ListenAndServe())
 }
