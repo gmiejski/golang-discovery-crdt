@@ -9,11 +9,3 @@ def getHost(argv):
             return val.replace('--host=', '')
     print("Default port: http://localhost:8080")
     return "http://localhost:8080"
-
-
-if __name__ == "__main__":
-    import sys
-
-    print(sys.argv)
-    host = getHost(sys.argv)
-    print(host)
