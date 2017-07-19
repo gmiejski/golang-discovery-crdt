@@ -3,8 +3,8 @@ package main
 import (
 	"net/http"
 	"org/miejski/discovery"
-	"org/miejski/domain"
 	"fmt"
+	"org/miejski/domain"
 )
 
 type StateController interface {
@@ -34,7 +34,7 @@ func GET(fn func(w http.ResponseWriter, request *http.Request)) func(w http.Resp
 
 func newStateController(
 	discoveryClient *discovery.DiscoveryClient,
-	stateKeeper *domain.DomainKeeper) StateController {
+	stateKeeper *CrdtValueKeeper) StateController {
 
 	controller := StateControllerImpl{*discoveryClient, *stateKeeper}
 	return &controller
@@ -42,7 +42,7 @@ func newStateController(
 
 type StateControllerImpl struct {
 	client      discovery.DiscoveryClient
-	stateKeeper domain.DomainKeeper
+	stateKeeper CrdtValueKeeper
 }
 
 func (c *StateControllerImpl) Status(w http.ResponseWriter, request *http.Request) {
@@ -51,7 +51,7 @@ func (c *StateControllerImpl) Status(w http.ResponseWriter, request *http.Reques
 }
 
 func (c *StateControllerImpl) Increment(w http.ResponseWriter, request *http.Request) {
-	c.stateKeeper.Add()
+	c.stateKeeper.UpdateChannel() <- domain.DomainUpdateValue(1)
 }
 
 func (c *StateControllerImpl) Reset(w http.ResponseWriter, request *http.Request) {

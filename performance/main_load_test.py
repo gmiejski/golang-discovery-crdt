@@ -5,7 +5,7 @@ from locust import HttpLocust, TaskSet, task
 from requests import get
 
 
-class WebsiteTasks(TaskSet):
+class CrdtTasks(TaskSet):
     variable = 0
     lock = threading.Lock()
 
@@ -15,25 +15,28 @@ class WebsiteTasks(TaskSet):
 
     @task
     def index(self):
-        self.client.get("/status/update")
-        with WebsiteTasks.lock: WebsiteTasks.variable += 1
+        self.client.post("/status/update")
+        with CrdtTasks.lock: CrdtTasks.variable += 1
 
 
 class WebsiteUser(HttpLocust):
-    task_set = WebsiteTasks
+    task_set = CrdtTasks
     min_wait = 1000
     max_wait = 1000
 
 
-def on_my_event():
-    print("Quitting 1")
-    print(WebsiteTasks.variable, WebsiteUser.host)
+def compare_results():
+    print("Performance test ended")
+    with CrdtTasks.lock:
+        variable = CrdtTasks.variable
+    print(variable, WebsiteUser.host)
     value = int(get("{}/status".format(WebsiteUser.host)).content)
     print(value)
     print("Quitting 2")
 
 
+
 from locust.events import quitting
 
-my_event = quitting
-my_event += on_my_event
+quitting_event = quitting
+quitting_event += compare_results

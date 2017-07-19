@@ -8,8 +8,8 @@ import (
 func main() {
 
 	discovery_client := discovery.NewDiscoveryClient()
-
-	dk := domain.UnsafeDomainKeeper()
+	keeper := domain.UnsafeDomainKeeper()
+	dk := CreateSafeValueKeeper(&keeper)
 
 	state_controller := newStateController(&discovery_client, &dk)
 
