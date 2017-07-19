@@ -5,6 +5,7 @@ import (
 	"org/miejski/discovery"
 	"fmt"
 	"org/miejski/domain"
+	"time"
 )
 
 type StateController interface {
@@ -36,8 +37,23 @@ func newStateController(
 	discoveryClient *discovery.DiscoveryClient,
 	stateKeeper *CrdtValueKeeper) StateController {
 
+	go func() {
+		for {
+			doEvery(2*time.Second, func(t time.Time) {
+				value := (*stateKeeper).Get()
+				fmt.Println(value)
+			})
+		}
+	}()
+
 	controller := StateControllerImpl{*discoveryClient, *stateKeeper}
 	return &controller
+}
+
+func doEvery(d time.Duration, f func(time.Time)) {
+	for x := range time.Tick(d) {
+		f(x)
+	}
 }
 
 type StateControllerImpl struct {

@@ -9,9 +9,10 @@ import (
 	"net/http"
 	"io/ioutil"
 	"strconv"
+	"fmt"
 )
-
-var host string = "http://localhost:8080"
+var port int = 7778
+var host string = fmt.Sprintf("http://localhost:%d", port)
 
 func setup() {
 	reset(host)
@@ -37,7 +38,7 @@ func prepareServer() CrdtServer {
 	server := NewServer(state_controller)
 
 	go func() {
-		server.Start(8080)
+		server.Start(port)
 	}()
 
 	return server
