@@ -9,9 +9,10 @@ import (
 	"net/http"
 	"io/ioutil"
 	"strconv"
+	"fmt"
 )
-
-var host string = "http://localhost:8080"
+var port int = 7778
+var host string = fmt.Sprintf("http://localhost:%d", port)
 
 func setup() {
 	reset(host)
@@ -31,12 +32,13 @@ func TestMain(m *testing.M) {
 
 func prepareServer() CrdtServer {
 	discovery_client := discovery.NewDiscoveryClient()
-	dk := domain.UnsafeDomainKeeper()
+	unsafe_keeper := domain.UnsafeDomainKeeper()
+	dk := CreateSafeValueKeeper(&unsafe_keeper)
 	state_controller := newStateController(&discovery_client, &dk)
 	server := NewServer(state_controller)
 
 	go func() {
-		server.Start(8080)
+		server.Start(port)
 	}()
 
 	return server

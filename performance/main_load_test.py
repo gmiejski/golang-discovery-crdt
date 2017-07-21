@@ -2,38 +2,51 @@ import threading
 
 import time
 from locust import HttpLocust, TaskSet, task
-from requests import get
+from requests import get, post
+from hosts import host_resolver
+
+import sys
+passed_host = host_resolver.getHost(sys.argv)
+post("{}/status/reset".format(passed_host))
 
 
-class WebsiteTasks(TaskSet):
-    variable = 0
+class CrdtTasks(TaskSet):
+    requests_count = 0
     lock = threading.Lock()
 
     def on_start(self):
-        self.client.post("/status/reset")
         time.sleep(1)
 
     @task
     def index(self):
-        self.client.get("/status/update")
-        with WebsiteTasks.lock: WebsiteTasks.variable += 1
+        with CrdtTasks.lock:
+            CrdtTasks.requests_count += 1
+        self.client.post("/status/update")
 
 
 class WebsiteUser(HttpLocust):
-    task_set = WebsiteTasks
-    min_wait = 1000
+    task_set = CrdtTasks
+    min_wait = 100
     max_wait = 1000
+    host = passed_host
 
+def compare_results():
+    print("Performance test ended")
+    time_to_wait = 2
+    print("Waiting for {} seconds for results".format(time_to_wait))
+    time.sleep(time_to_wait)
+    with CrdtTasks.lock:
+        requests_count = CrdtTasks.requests_count
 
-def on_my_event():
-    print("Quitting 1")
-    print(WebsiteTasks.variable, WebsiteUser.host)
-    value = int(get("{}/status".format(WebsiteUser.host)).content)
-    print(value)
-    print("Quitting 2")
+    print(requests_count, WebsiteUser.host)
+    current_value = int(get("{}/status".format(WebsiteUser.host)).content)
+    if current_value != requests_count:
+        raise Exception("Inconsistent system! Expected {} got {}".format(requests_count, current_value))
+    print(current_value)
+    print("Finish")
 
 
 from locust.events import quitting
 
-my_event = quitting
-my_event += on_my_event
+quitting_event = quitting
+quitting_event += compare_results
