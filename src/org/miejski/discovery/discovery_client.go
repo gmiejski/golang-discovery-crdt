@@ -1,9 +1,13 @@
 package discovery
 
+import "time"
+
 type DiscoveryClient interface {
+	ClusterInfo() ClusterStatus
 	CurrentActiveNodes() []AppNode
 	AllNodes() []AppNode
 	AddNode(node AppNode)
+	RegisterHeartbeat(node_info NodeInfo)
 }
 
 type inMemoryDiscoveryClient struct {
@@ -11,9 +15,32 @@ type inMemoryDiscoveryClient struct {
 }
 
 func NewDiscoveryClient() DiscoveryClient {
-	nodes := make([]AppNode, 5)
+	nodes := make([]AppNode, 0)
 	client := inMemoryDiscoveryClient{Nodes: nodes}
 	return &client
+}
+
+func (client *inMemoryDiscoveryClient) RegisterHeartbeat(node_info NodeInfo) {
+	exists, node := client.containsNode(node_info.url)
+	if exists {
+		node.State = ACTIVE
+		node.LastUpdate = time.Now()
+	} else {
+		node := AppNode{url:node_info.url, State:ACTIVE, LastUpdate:time.Now()}
+		client.AddNode(node)
+	}
+}
+func (client *inMemoryDiscoveryClient) containsNode(url string) (bool, *AppNode) {
+	for _, v := range client.Nodes {
+		if v.url == url {
+			return true, &v
+		}
+	}
+	return false, nil
+}
+
+func (client *inMemoryDiscoveryClient) ClusterInfo() ClusterStatus {
+	return ClusterStatus{client.Nodes}
 }
 
 func (client *inMemoryDiscoveryClient) CurrentActiveNodes() []AppNode {
