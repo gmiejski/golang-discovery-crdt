@@ -35,7 +35,7 @@ func prepareServer() CrdtServer {
 	unsafe_keeper := domain.UnsafeDomainKeeper()
 	dk := CreateSafeValueKeeper(&unsafe_keeper)
 	state_controller := newStateController(&discovery_client, &dk)
-	server := NewServer(state_controller)
+	server := NewServer(state_controller, discovery_client)
 
 	go func() {
 		server.Start(port)

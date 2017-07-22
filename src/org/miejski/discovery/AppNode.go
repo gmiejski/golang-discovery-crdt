@@ -13,3 +13,8 @@ const (
 	DEAD State = iota
 	ACTIVE State = iota
 )
+
+
+type ClusterStatus struct {
+
+}

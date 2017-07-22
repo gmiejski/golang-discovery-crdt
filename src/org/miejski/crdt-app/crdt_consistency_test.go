@@ -20,7 +20,7 @@ func TestCrdtConsistency(t *testing.T) {
 		go updateState(&dk, &wg)
 	}
 	wg.Wait()
-	close(dk.UpdateChannel())
+	close(dk.UpdateChannel()) // TODO when closing channel it loses single update sometimes? Rework to not enable direct access to channel
 
 	current_value := dk.Get()
 	if int(current_value) != times {

@@ -13,6 +13,6 @@ func main() {
 
 	state_controller := newStateController(&discovery_client, &dk)
 
-	server := NewServer(state_controller)
+	server := NewServer(state_controller, discovery_client)
 	server.Start(8080)
 }
