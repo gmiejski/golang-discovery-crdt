@@ -31,11 +31,11 @@ func TestMain(m *testing.M) {
 }
 
 func prepareServer() CrdtServer {
-	discovery_client := discovery.NewDiscoveryClient()
+	discovery_client := discovery.NewDiscoveryClient("host")
 	unsafe_keeper := domain.UnsafeDomainKeeper()
 	dk := CreateSafeValueKeeper(&unsafe_keeper)
 	state_controller := newStateController(&discovery_client, &dk)
-	server := NewServer(state_controller, discovery_client)
+	server := NewServer(&state_controller, &discovery_client)
 
 	go func() {
 		server.Start(port)

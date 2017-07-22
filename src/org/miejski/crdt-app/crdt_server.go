@@ -20,12 +20,12 @@ type crdtServerImpl struct {
 }
 
 func NewServer(
-	state_controller StateController,
-	discovery_client discovery.DiscoveryClient,
+	state_controller *StateController,
+	discovery_client *discovery.DiscoveryClient,
 ) CrdtServer {
 
 	var s http.Server
-	server := crdtServerImpl{state_controller, s, discovery_client}
+	server := crdtServerImpl{*state_controller, s, *discovery_client}
 	return &server
 }
 

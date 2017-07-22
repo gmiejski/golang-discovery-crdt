@@ -5,8 +5,8 @@ import "time"
 type State int
 
 type AppNode struct {
-	url string
-	State State
+	Url        string
+	State      State
 	LastUpdate time.Time
 }
 
@@ -16,5 +16,6 @@ const (
 )
 
 type ClusterStatus struct {
-	nodes []AppNode
+	NodeUrl string
+	Nodes   []AppNode
 }

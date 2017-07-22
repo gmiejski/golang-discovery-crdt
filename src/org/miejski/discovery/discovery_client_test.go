@@ -5,7 +5,7 @@ import (
 )
 
 func TestActiveNodes(t *testing.T) {
-	client := NewDiscoveryClient()
+	client := NewDiscoveryClient("host")
 	client.AddNode(AppNode{State: ACTIVE})
 	client.AddNode(AppNode{State: DEAD})
 	client.AddNode(AppNode{State: ACTIVE})
@@ -18,7 +18,7 @@ func TestActiveNodes(t *testing.T) {
 }
 
 func TestClusterStatus(t *testing.T) {
-	client := NewDiscoveryClient()
+	client := NewDiscoveryClient("host")
 	client.RegisterHeartbeat(NodeInfo{"node1"})
 	client.RegisterHeartbeat(NodeInfo{"node2"})
 	client.RegisterHeartbeat(NodeInfo{"node3"})
@@ -27,8 +27,8 @@ func TestClusterStatus(t *testing.T) {
 
 	clusterInfo := client.ClusterInfo()
 
-	if len(clusterInfo.nodes) != 3 {
-		t.Errorf("Cluster info should have %d nodes, but has %d!", 3, len(clusterInfo.nodes))
+	if len(clusterInfo.Nodes) != 3 {
+		t.Errorf("Cluster info should have %d Nodes, but has %d!", 3, len(clusterInfo.Nodes))
 	}
 }
 

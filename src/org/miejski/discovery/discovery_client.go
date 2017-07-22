@@ -1,6 +1,9 @@
 package discovery
 
-import "time"
+import (
+	"time"
+	"fmt"
+)
 
 type DiscoveryClient interface {
 	ClusterInfo() ClusterStatus
@@ -8,16 +11,23 @@ type DiscoveryClient interface {
 	AllNodes() []AppNode
 	AddNode(node AppNode)
 	RegisterHeartbeat(node_info NodeInfo)
+	HeartbeatInfo() HeartbeatInfo
+}
+
+func NewDiscoveryClient(thisUrl string) DiscoveryClient {
+	nodes := make([]AppNode, 0)
+	client := inMemoryDiscoveryClient{info: AppNode{Url: thisUrl}, Nodes: nodes}
+	return &client
 }
 
 type inMemoryDiscoveryClient struct {
+	info  AppNode
 	Nodes []AppNode
 }
 
-func NewDiscoveryClient() DiscoveryClient {
-	nodes := make([]AppNode, 0)
-	client := inMemoryDiscoveryClient{Nodes: nodes}
-	return &client
+func (client *inMemoryDiscoveryClient) HeartbeatInfo() HeartbeatInfo {
+	fmt.Println(client.info)
+	return HeartbeatInfo{client.info.Url, client.ClusterInfo()}
 }
 
 func (client *inMemoryDiscoveryClient) RegisterHeartbeat(node_info NodeInfo) {
@@ -26,13 +36,13 @@ func (client *inMemoryDiscoveryClient) RegisterHeartbeat(node_info NodeInfo) {
 		node.State = ACTIVE
 		node.LastUpdate = time.Now()
 	} else {
-		node := AppNode{url:node_info.url, State:ACTIVE, LastUpdate:time.Now()}
+		node := AppNode{Url: node_info.url, State: ACTIVE, LastUpdate: time.Now()}
 		client.AddNode(node)
 	}
 }
 func (client *inMemoryDiscoveryClient) containsNode(url string) (bool, *AppNode) {
 	for _, v := range client.Nodes {
-		if v.url == url {
+		if v.Url == url {
 			return true, &v
 		}
 	}
@@ -40,7 +50,7 @@ func (client *inMemoryDiscoveryClient) containsNode(url string) (bool, *AppNode)
 }
 
 func (client *inMemoryDiscoveryClient) ClusterInfo() ClusterStatus {
-	return ClusterStatus{client.Nodes}
+	return ClusterStatus{client.info.Url, client.Nodes}
 }
 
 func (client *inMemoryDiscoveryClient) CurrentActiveNodes() []AppNode {
