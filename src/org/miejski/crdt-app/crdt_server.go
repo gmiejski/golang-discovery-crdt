@@ -38,7 +38,7 @@ func (server *crdtServerImpl) Start(port int) {
 
 	discovery.RegisterDiscoveryEndpoints(&server.discovery_client)
 	discovery.CreateDiscoveryHeartbeater(&server.discovery_client).Start(2* time.Second)
-	fmt.Println("Starting server")
+	fmt.Println(fmt.Sprintf("Starting server at port %d", port) )
 	log.Fatal(srv.ListenAndServe())
 }
 
