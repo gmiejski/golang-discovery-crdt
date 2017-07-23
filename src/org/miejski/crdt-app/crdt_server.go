@@ -6,6 +6,7 @@ import (
 	"log"
 	"org/miejski/discovery"
 	"org/miejski/rest"
+	"time"
 )
 
 type CrdtServer interface {
@@ -36,6 +37,7 @@ func (server *crdtServerImpl) Start(port int) {
 	http.HandleFunc("/status/reset", rest.POST(server.state_controller.Reset))
 
 	discovery.RegisterDiscoveryEndpoints(&server.discovery_client)
+	discovery.CreateDiscoveryHeartbeater(&server.discovery_client).Start(2* time.Second)
 	fmt.Println("Starting server")
 	log.Fatal(srv.ListenAndServe())
 }

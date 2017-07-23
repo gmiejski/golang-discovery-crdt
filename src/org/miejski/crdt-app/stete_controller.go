@@ -22,7 +22,7 @@ func newStateController(
 		for {
 			doEvery(2*time.Second, func(t time.Time) {
 				value := (*stateKeeper).Get()
-				fmt.Println(value)
+				fmt.Println(fmt.Sprintf("Current value : %d", value))
 			})
 		}
 	}()

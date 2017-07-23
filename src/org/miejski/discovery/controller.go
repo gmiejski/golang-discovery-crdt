@@ -5,7 +5,6 @@ import (
 	"org/miejski/rest"
 	"fmt"
 	"encoding/json"
-	"bytes"
 )
 
 type DiscoveryController interface {
@@ -30,21 +29,7 @@ func (dc *simpleDiscoveryController) ClusterInfo(w http.ResponseWriter, request 
 }
 
 func (dc *simpleDiscoveryController) Heartbeat(w http.ResponseWriter, request *http.Request) {
-	client := dc.discovery_client
-	info := (*client).HeartbeatInfo()
-	for _, node := range info.cluster.Nodes {
-		dc.sendHeartbeatInfo(info, node.Url)
-	}
-}
-
-func (dc *simpleDiscoveryController) sendHeartbeatInfo(info HeartbeatInfo, target string) {
-	jsonVal, err := json.Marshal(info)
-	if err != nil {
-		panic(err)
-	}
-
-	rq, _ := http.NewRequest("POST", target+"/cluster/heartbeat", bytes.NewBuffer(jsonVal))
-	dc.client.Do(rq)
+	// TODO receive heartbeat from other servers
 }
 
 func CreateDiscoveryController(discovery_client *DiscoveryClient) DiscoveryController {
