@@ -10,7 +10,7 @@ type DiscoveryClient interface {
 	CurrentActiveNodes() []AppNode
 	AllNodes() []AppNode
 	AddNode(node AppNode)
-	RegisterHeartbeat(node_info NodeInfo)
+	RegisterHeartbeat(node_info HeartbeatInfo)
 	HeartbeatInfo() HeartbeatInfo
 }
 
@@ -30,13 +30,13 @@ func (client *inMemoryDiscoveryClient) HeartbeatInfo() HeartbeatInfo {
 	return HeartbeatInfo{client.info.Url, client.ClusterInfo()}
 }
 
-func (client *inMemoryDiscoveryClient) RegisterHeartbeat(node_info NodeInfo) {
-	exists, node := client.containsNode(node_info.url)
+func (client *inMemoryDiscoveryClient) RegisterHeartbeat(node_info HeartbeatInfo) {
+	exists, node := client.containsNode(node_info.Url)
 	if exists {
 		node.State = ACTIVE
 		node.LastUpdate = time.Now()
 	} else {
-		node := AppNode{Url: node_info.url, State: ACTIVE, LastUpdate: time.Now()}
+		node := AppNode{Url: node_info.Url, State: ACTIVE, LastUpdate: time.Now()}
 		client.AddNode(node)
 	}
 }

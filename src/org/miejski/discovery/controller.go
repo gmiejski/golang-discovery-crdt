@@ -29,7 +29,20 @@ func (dc *simpleDiscoveryController) ClusterInfo(w http.ResponseWriter, request 
 }
 
 func (dc *simpleDiscoveryController) Heartbeat(w http.ResponseWriter, request *http.Request) {
-	// TODO receive heartbeat from other servers
+	heartbeat_info := readHeartbeatInfo(request)
+	ds := dc.discovery_client
+	(*ds).RegisterHeartbeat(heartbeat_info)
+}
+
+func readHeartbeatInfo(request *http.Request) HeartbeatInfo {
+	decoder := json.NewDecoder(request.Body)
+	var t HeartbeatInfo
+	err := decoder.Decode(&t)
+	if err != nil {
+		panic(err)
+	}
+	defer request.Body.Close()
+	return t
 }
 
 func CreateDiscoveryController(discovery_client *DiscoveryClient) DiscoveryController {
@@ -38,7 +51,7 @@ func CreateDiscoveryController(discovery_client *DiscoveryClient) DiscoveryContr
 	return &dc
 }
 
-func RegisterDiscoveryEndpoints(discovery_client *DiscoveryClient) {
+func RegisterDiscoveryEndpoints(discovery_client *DiscoveryClient, srv *http.Server) {
 	dc := CreateDiscoveryController(discovery_client)
 	http.HandleFunc("/cluster/info", rest.GET(dc.ClusterInfo))
 	http.HandleFunc("/cluster/heartbeat", rest.POST(dc.Heartbeat))

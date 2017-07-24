@@ -1,10 +1,10 @@
 package discovery
 
 type NodeInfo struct {
-	url string
+	Url string
 }
 
 type HeartbeatInfo struct {
-	url string
-	cluster ClusterStatus
+	Url     string
+	Cluster ClusterStatus
 }

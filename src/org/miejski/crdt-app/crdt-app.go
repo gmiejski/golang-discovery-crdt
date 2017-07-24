@@ -7,9 +7,10 @@ import (
 	"fmt"
 )
 
-var port = flag.Int("port", 8080, "Port to bind this server at")
 
 func main() {
+
+	var port = flag.Int("port", 8080, "Port to bind this server at")
 	flag.Parse()
 
 	this_server_url := fmt.Sprintf("http://localhost:%d", *port)

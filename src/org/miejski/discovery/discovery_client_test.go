@@ -19,11 +19,11 @@ func TestActiveNodes(t *testing.T) {
 
 func TestClusterStatus(t *testing.T) {
 	client := NewDiscoveryClient("host")
-	client.RegisterHeartbeat(NodeInfo{"node1"})
-	client.RegisterHeartbeat(NodeInfo{"node2"})
-	client.RegisterHeartbeat(NodeInfo{"node3"})
-	client.RegisterHeartbeat(NodeInfo{"node3"})
-	client.RegisterHeartbeat(NodeInfo{"node1"})
+	client.RegisterHeartbeat(HeartbeatInfo{Url:"node1"})
+	client.RegisterHeartbeat(HeartbeatInfo{Url:"node2"})
+	client.RegisterHeartbeat(HeartbeatInfo{Url:"node3"})
+	client.RegisterHeartbeat(HeartbeatInfo{Url:"node3"})
+	client.RegisterHeartbeat(HeartbeatInfo{Url:"node1"})
 
 	clusterInfo := client.ClusterInfo()
 

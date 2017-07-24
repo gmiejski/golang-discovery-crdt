@@ -37,7 +37,7 @@ func (heartbeater *discoveryHeartbeater) PublishHeartbeat() {
 	fmt.Println("publishing heartbeat")
 	client := heartbeater.discovery_client
 	info := (*client).HeartbeatInfo()
-	for _, node := range info.cluster.Nodes {
+	for _, node := range info.Cluster.Nodes {
 		heartbeater.sendHeartbeatInfo(info, node.Url)
 	}
 }

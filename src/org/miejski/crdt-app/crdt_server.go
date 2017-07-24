@@ -36,7 +36,7 @@ func (server *crdtServerImpl) Start(port int) {
 	http.HandleFunc("/status/update", rest.POST(server.state_controller.Increment))
 	http.HandleFunc("/status/reset", rest.POST(server.state_controller.Reset))
 
-	discovery.RegisterDiscoveryEndpoints(&server.discovery_client)
+	discovery.RegisterDiscoveryEndpoints(&server.discovery_client, srv)
 	discovery.CreateDiscoveryHeartbeater(&server.discovery_client).Start(2* time.Second)
 	fmt.Println(fmt.Sprintf("Starting server at port %d", port) )
 	log.Fatal(srv.ListenAndServe())

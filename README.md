@@ -5,8 +5,12 @@
 
 * Run all unit tests:
 
-    `go test -v -race ./... -short `
+    `go test -v -race org/miejski/... -short `
     
 * Run all integration tests:   
        
-    `go test -v -race ./... -run Integration`
+    `go test -v -race org/miejski/... -run Integration`
+    
+## Dependencies:
+
+* `go get github.com/stretchr/testify`
