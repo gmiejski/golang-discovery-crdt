@@ -11,10 +11,12 @@ import (
 func main() {
 
 	var port = flag.Int("port", 8080, "Port to bind this server at")
+	var joinAddress = flag.String("join", "", "Single node address of the cluster to join")
+
 	flag.Parse()
 
 	this_server_url := fmt.Sprintf("http://localhost:%d", *port)
-	discovery_client := discovery.NewDiscoveryClient(this_server_url)
+	discovery_client := discovery.NewDiscoveryClient(this_server_url, *joinAddress)
 	keeper := domain.UnsafeDomainKeeper()
 	dk := CreateSafeValueKeeper(&keeper)
 

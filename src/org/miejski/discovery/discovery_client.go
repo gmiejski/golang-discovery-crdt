@@ -3,6 +3,8 @@ package discovery
 import (
 	"time"
 	"fmt"
+	"net/http"
+	"encoding/json"
 )
 
 type DiscoveryClient interface {
@@ -14,9 +16,14 @@ type DiscoveryClient interface {
 	HeartbeatInfo() HeartbeatInfo
 }
 
-func NewDiscoveryClient(thisUrl string) DiscoveryClient {
+func NewDiscoveryClient(thisUrl string, joinAddress string) DiscoveryClient {
 	nodes := make([]AppNode, 0)
 	client := inMemoryDiscoveryClient{info: AppNode{Url: thisUrl}, Nodes: nodes}
+	if joinAddress != "" {
+		fmt.Println(fmt.Sprintf("Joining cluster at: %s", joinAddress))
+		client.UpdateClusterInfo(joinAddress)
+		fmt.Println(fmt.Sprintf("Joined cluster: %#v", client.ClusterInfo()))
+	}
 	return &client
 }
 
@@ -25,8 +32,30 @@ type inMemoryDiscoveryClient struct {
 	Nodes []AppNode
 }
 
+func (client *inMemoryDiscoveryClient) UpdateClusterInfo(joinAddress string) {
+	cluster_info := getClusterInfo(joinAddress)
+	nodes := make([]AppNode, 0)
+	for _, node := range cluster_info.Nodes {
+		nodes = append(nodes, AppNode{node.Url, ACTIVE, time.Now()})
+	}
+	nodes = append(nodes, AppNode{cluster_info.NodeUrl, ACTIVE, time.Now()})
+	client.Nodes = nodes
+}
+func getClusterInfo(joinAddress string) ClusterStatus {
+	rq, _ := http.NewRequest(http.MethodGet, joinAddress+"/cluster/info", nil)
+	client := http.Client{}
+	rs, _ := client.Do(rq)
+
+	decoder := json.NewDecoder(rs.Body)
+	var value ClusterStatus
+	err := decoder.Decode(&value)
+	if err != nil {
+		panic(err)
+	}
+	return value
+}
+
 func (client *inMemoryDiscoveryClient) HeartbeatInfo() HeartbeatInfo {
-	fmt.Println(client.info)
 	return HeartbeatInfo{client.info.Url, client.ClusterInfo()}
 }
 
@@ -68,7 +97,7 @@ func (client *inMemoryDiscoveryClient) AddNode(node AppNode) {
 }
 
 func (client *inMemoryDiscoveryClient) UpdateNodeState(node AppNode) {
-
+	// TODO
 }
 
 func (client *inMemoryDiscoveryClient) AllNodes() []AppNode {
