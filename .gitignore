@@ -66,3 +66,5 @@ pkg
 
 /performance/.venv
 performance/__pycache__/
+
+src/github.com
