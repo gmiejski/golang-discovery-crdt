@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"encoding/json"
 	"bytes"
+	"time"
 )
 
 var client = http.Client{}
@@ -47,6 +48,14 @@ func startServer(srv *http.Server) {
 
 type MockDiscoveryClient struct {
 	mock.Mock
+}
+
+func (c *MockDiscoveryClient) ChangeStatus(node_url string, last_time_seen time.Time, new_state State) {
+	panic("implement me")
+}
+
+func (c *MockDiscoveryClient) Start(every time.Duration) {
+	panic("implement me")
 }
 
 func (c *MockDiscoveryClient) ClusterInfo() ClusterStatus {

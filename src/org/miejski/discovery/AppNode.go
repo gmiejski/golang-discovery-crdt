@@ -2,7 +2,7 @@ package discovery
 
 import "time"
 
-type State int
+type State string
 
 type AppNode struct {
 	Url        string
@@ -11,8 +11,8 @@ type AppNode struct {
 }
 
 const (
-	DEAD State = iota
-	ACTIVE State = iota
+	ACTIVE State = "ACTIVE"
+	DEAD State = "DEAD"
 )
 
 type ClusterStatus struct {
