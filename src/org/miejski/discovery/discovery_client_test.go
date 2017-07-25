@@ -5,7 +5,7 @@ import (
 )
 
 func TestActiveNodes(t *testing.T) {
-	client := NewDiscoveryClient("host")
+	client := NewDiscoveryClient("host", "")
 	client.AddNode(AppNode{State: ACTIVE})
 	client.AddNode(AppNode{State: DEAD})
 	client.AddNode(AppNode{State: ACTIVE})
@@ -18,7 +18,7 @@ func TestActiveNodes(t *testing.T) {
 }
 
 func TestClusterStatus(t *testing.T) {
-	client := NewDiscoveryClient("host")
+	client := NewDiscoveryClient("host", "")
 	client.RegisterHeartbeat(HeartbeatInfo{Url:"node1"})
 	client.RegisterHeartbeat(HeartbeatInfo{Url:"node2"})
 	client.RegisterHeartbeat(HeartbeatInfo{Url:"node3"})

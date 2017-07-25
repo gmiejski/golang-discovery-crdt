@@ -18,7 +18,7 @@ func TestHeartbeatingOtherNodesInCluster(t *testing.T) {
 	}))
 	defer ts.Close()
 	defer ts2.Close()
-	discovery_client := NewDiscoveryClient("http://localhost:8080")
+	discovery_client := NewDiscoveryClient("http://localhost:8080", "")
 	discovery_client.RegisterHeartbeat(HeartbeatInfo{Url: ts.URL})
 	discovery_client.RegisterHeartbeat(HeartbeatInfo{Url: ts2.URL})
 	heartbeater := CreateDiscoveryHeartbeater(&discovery_client)
