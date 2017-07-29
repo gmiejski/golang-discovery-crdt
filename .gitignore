@@ -66,3 +66,6 @@ pkg
 
 /performance/.venv
 performance/__pycache__/
+
+src/github.com
+src/org/miejski/my_test
