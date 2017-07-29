@@ -8,15 +8,12 @@ import (
 	"sync"
 )
 
-var time_alive time.Duration = 5 * time.Second
-
 type DiscoveryClient interface {
 	ClusterInfo() ClusterStatus
 	CurrentActiveNodes() []AppNode
 	AllNodes() []AppNode
 	RegisterHeartbeat(node_info HeartbeatInfo)
 	HeartbeatInfo() HeartbeatInfo
-	Start(every time.Duration)
 	ChangeStatus(node_url string, last_time_seen time.Time, new_state State)
 }
 
@@ -47,35 +44,13 @@ func (dc *inMemoryDiscoveryClient) ChangeStatus(node_url string, last_time_seen 
 	}
 }
 
-func (dc *inMemoryDiscoveryClient) Start(every time.Duration) {
-	go start(dc, every)
-}
-
-func start(dc *inMemoryDiscoveryClient, every time.Duration) {
-	for {
-		time.Sleep(every)
-		dc.l.Lock()
-		markDeadNodes(dc)
-		dc.l.Unlock()
-	}
-}
-func markDeadNodes(dc *inMemoryDiscoveryClient) {
-	fmt.Println("Start marking nodes as DEAD")
-	dead_nodes := make([]AppNode, 0)
-	for _, node := range (*dc).AllNodes() {
-		if node.State != DEAD && node.LastUpdate.Add(time_alive).Before(time.Now()) {
-			dead_nodes = append(dead_nodes, node)
-			dc.ChangeStatus(node.Url, node.LastUpdate, DEAD)
-		}
-	}
-	fmt.Println(fmt.Sprintf("Nodes marked as dead #%v", dead_nodes))
-}
-
 func (client *inMemoryDiscoveryClient) updateClusterInfo(joinAddress string) {
 	cluster_info := getClusterInfo(joinAddress)
 	nodes := make([]AppNode, 0)
 	for _, node := range cluster_info.Nodes {
-		nodes = append(nodes, AppNode{node.Url, ACTIVE, time.Now()})
+		if node.Url != client.info.Url {
+			nodes = append(nodes, AppNode{node.Url, node.State, time.Now()})
+		}
 	}
 	nodes = append(nodes, AppNode{cluster_info.NodeUrl, ACTIVE, time.Now()})
 	client.Nodes = nodes
@@ -143,6 +118,9 @@ func (client *inMemoryDiscoveryClient) addNode(node AppNode) { // TODO remove
 	client.Nodes = append(client.Nodes, node)
 }
 
-func (client *inMemoryDiscoveryClient) AllNodes() []AppNode { // TODO remove?
-	return client.Nodes
+func (client *inMemoryDiscoveryClient) AllNodes() []AppNode {
+	client.l.Lock()
+	defer client.l.Unlock()
+	nodes := client.Nodes
+	return nodes
 }
