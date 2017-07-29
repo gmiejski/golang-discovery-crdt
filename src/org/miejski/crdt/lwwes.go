@@ -17,7 +17,7 @@ type LastWriteWinsElementSet interface {
 	Add(element Element, time time.Time) bool
 	Remove(element Element, time time.Time) bool
 	Get() []Element
-	Merge(LastWriteWinsElementSet) LastWriteWinsElementSet
+	Merge(other *LastWriteWinsElementSet) LastWriteWinsElementSet
 	Contains(element Element) bool
 	Size() int
 }
@@ -72,8 +72,32 @@ func (s *lwwes) Get() []Element {
 	return result
 }
 
-func (s *lwwes) Merge(LastWriteWinsElementSet) LastWriteWinsElementSet {
-	panic("Panicked on merge")
+func (s *lwwes) Merge(other *LastWriteWinsElementSet) LastWriteWinsElementSet {
+	casted, ok  := (*other).(*lwwes)
+	if !ok {
+		return nil
+	}
+	merged_insert := mergeMap(s.add_set, casted.add_set)
+	merged_remove := mergeMap(s.remove_set, casted.remove_set)
+	result := lwwes{merged_insert, merged_remove}
+	return &result
+}
+
+func mergeMap(m1 map[Element]time.Time, m2 map[Element]time.Time) map[Element]time.Time{
+	result := map[Element]time.Time{}
+	for m1_element, m1_time := range m1 {
+		last_observed, present := result[m1_element]
+		if !present || last_observed.Before(m1_time) {
+			result[m1_element] = m1_time
+		}
+	}
+	for m2_element, m2_time := range m2 {
+		last_observed, present := result[m2_element]
+		if !present || last_observed.Before(m2_time) {
+			result[m2_element] = m2_time
+		}
+	}
+	return result
 }
 
 func (s *lwwes) Contains(element Element) bool {
