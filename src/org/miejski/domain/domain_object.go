@@ -18,6 +18,6 @@ const (
 )
 
 type DomainUpdateObject struct {
-	Value     IntElement
+	Value     int
 	Operation UpdateOperationType
 }

@@ -24,12 +24,12 @@ func (dk *unsafeDomainKeeper) Add(val DomainUpdateObject) {
 	case ADD:
 		{
 			value := (*dk).value
-			value.Add(&val.Value, time.Now())
+			value.Add(IntElement{val.Value}, time.Now())
 		}
 	case REMOVE:
 		{
 			value := (*dk).value
-			value.Remove(&val.Value, time.Now())
+			value.Remove(IntElement{val.Value}, time.Now())
 		}
 	}
 }

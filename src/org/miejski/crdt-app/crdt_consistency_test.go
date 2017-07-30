@@ -29,5 +29,5 @@ func TestCrdtConsistency(t *testing.T) {
 
 func updateState(vk *CrdtValueKeeper, wg *sync.WaitGroup) {
 	defer wg.Done()
-	(*vk).UpdateChannel() <- domain.DomainUpdateObject{domain.IntElement{1}, domain.ADD}
+	(*vk).UpdateChannel() <- domain.DomainUpdateObject{1, domain.ADD}
 }

@@ -57,7 +57,7 @@ func (c *StateControllerImpl) Status(w http.ResponseWriter, request *http.Reques
 
 func (c *StateControllerImpl) Increment(w http.ResponseWriter, request *http.Request) {
 	updateInfo := readUpdateInfo(request)
-	update_object := domain.DomainUpdateObject{Value: updateInfo.Value, Operation: updateInfo.Operation}
+	update_object := domain.DomainUpdateObject{Value: updateInfo.Value.Value, Operation: updateInfo.Operation}
 	c.stateKeeper.UpdateChannel() <- update_object
 }
 func readUpdateInfo(request *http.Request) CrdtOperation {
