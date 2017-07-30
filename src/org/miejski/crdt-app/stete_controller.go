@@ -7,10 +7,13 @@ import (
 	"org/miejski/domain"
 	"time"
 	"encoding/json"
+	"org/miejski/crdt"
+	"strconv"
 )
 
 type StateController interface {
 	Status(writer http.ResponseWriter, request *http.Request)
+	ReadableStatus(writer http.ResponseWriter, request *http.Request)
 	Increment(writer http.ResponseWriter, request *http.Request)
 	Reset(writer http.ResponseWriter, request *http.Request)
 }
@@ -60,6 +63,31 @@ func (c *StateControllerImpl) Increment(w http.ResponseWriter, request *http.Req
 	update_object := domain.DomainUpdateObject{Value: updateInfo.Value.Value, Operation: updateInfo.Operation}
 	c.stateKeeper.UpdateChannel() <- update_object
 }
+
+func (c *StateControllerImpl) ReadableStatus(w http.ResponseWriter, request *http.Request) {
+	value := c.stateKeeper.Get()
+	converted := toReadableState(value)
+	fmt.Println(converted)
+	val, err := json.Marshal(converted)
+
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprint(w, string(val))
+}
+
+func toReadableState(lwwes crdt.Lwwes) ReadableState {
+	values := make([]string, 0)
+	for _, element := range lwwes.Get() {
+		intElement, ok := element.(domain.IntElement)
+		if ok {
+			values = append(values, strconv.Itoa(intElement.Value))
+		}
+	}
+	result := ReadableState{Values:values}
+	return result
+}
+
 func readUpdateInfo(request *http.Request) CrdtOperation {
 	decoder := json.NewDecoder(request.Body)
 	var operation CrdtOperation

@@ -33,6 +33,7 @@ func NewServer(
 func (server *crdtServerImpl) Start(port int) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/status", rest.GET(server.state_controller.Status))
+	mux.HandleFunc("/status/readable", rest.GET(server.state_controller.ReadableStatus))
 	mux.HandleFunc("/status/update", rest.POST(server.state_controller.Increment))
 	mux.HandleFunc("/status/reset", rest.POST(server.state_controller.Reset))
 

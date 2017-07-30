@@ -41,3 +41,7 @@ func lwwesFromDto(dto CurrentStateDto) crdt.Lwwes {
 	}
 	return crdt.Lwwes{add, remove}
 }
+
+type ReadableState struct {
+	Values []string
+}
