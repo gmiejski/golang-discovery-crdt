@@ -1,30 +1,43 @@
 package domain
 
-type DomainValue int
-type DomainUpdateValue int
+import (
+	"time"
+	"org/miejski/crdt"
+)
 
 type DomainKeeper interface {
-	Add(DomainUpdateValue)
-	Get() DomainValue
+	Add(DomainUpdateObject)
+	Get() crdt.Lwwes
 	Reset()
 }
 
 func UnsafeDomainKeeper() DomainKeeper {
-	return &unsafeDomainKeeper{}
+	return &unsafeDomainKeeper{crdt.CreateLwwes()}
 }
 
 type unsafeDomainKeeper struct {
-	value DomainValue
+	value crdt.Lwwes
 }
 
-func (dk *unsafeDomainKeeper) Add(val DomainUpdateValue) {
-	dk.value += DomainValue(val)
+func (dk *unsafeDomainKeeper) Add(val DomainUpdateObject) {
+	switch val.Operation {
+	case ADD:
+		{
+			value := (*dk).value
+			value.Add(&val.Value, time.Now())
+		}
+	case REMOVE:
+		{
+			value := (*dk).value
+			value.Remove(&val.Value, time.Now())
+		}
+	}
 }
 
-func (dk *unsafeDomainKeeper) Get() DomainValue {
+func (dk *unsafeDomainKeeper) Get() crdt.Lwwes {
 	return dk.value
 }
 
 func (dk *unsafeDomainKeeper) Reset() {
-	dk.value = 0
+	dk.value = crdt.CreateLwwes()
 }

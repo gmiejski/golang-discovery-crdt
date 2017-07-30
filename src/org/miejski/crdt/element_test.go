@@ -1,9 +1,11 @@
 package crdt
 
+import "strconv"
+
 type IntElement struct{
-	val int
+	Val int
 }
 
-func (i IntElement) Get() interface{} {
-	return i.val
+func (i IntElement) Get() string {
+	return strconv.Itoa(i.Val)
 }

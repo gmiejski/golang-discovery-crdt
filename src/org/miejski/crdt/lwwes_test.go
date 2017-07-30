@@ -66,6 +66,7 @@ func TestMergeOperation(t *testing.T) {
 
 
 
-func el(i int) IntElement {
-	return IntElement{i}
+func el(i int) Element {
+	element := IntElement{i}
+	return element
 }

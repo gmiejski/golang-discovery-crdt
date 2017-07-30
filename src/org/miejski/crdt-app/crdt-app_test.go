@@ -7,9 +7,12 @@ import (
 	"org/miejski/discovery"
 	"org/miejski/domain"
 	"net/http"
-	"io/ioutil"
-	"strconv"
 	"fmt"
+	"encoding/json"
+	"org/miejski/crdt"
+	"time"
+	"bytes"
+	"github.com/stretchr/testify/assert"
 )
 var port int = 7778
 var host string = fmt.Sprintf("http://localhost:%d", port)
@@ -51,66 +54,83 @@ func quitServer(server CrdtServer) {
 func TestCrdtUpdateIntegration(t *testing.T) {
 	setup()
 	// given
-	first_expected := domain.DomainValue(0)
-	second_expected := domain.DomainValue(2)
+	first_expected := crdt.CreateLwwes()
+	now := time.Now()
+	first_expected.Add(&domain.IntElement{1}, now)
+	second_expected := crdt.CreateLwwes()
+	second_expected.Add(&domain.IntElement{1}, now)
+	second_expected.Add(&domain.IntElement{2}, now)
+
+	updateValue(1, domain.ADD, host)
+	updateValue(2, domain.ADD, host)
 
 	// when
 	first_value := getCurrentValue(host)
 
 	// then
-	if first_value != domain.DomainValue(first_expected) {
-		t.Errorf("Should have value %d, but had %d before updates", first_expected, first_value)
-	}
+	assert.True(t, first_value.Contains(domain.IntElement{1}))
+	assert.True(t, first_value.Contains(domain.IntElement{2}))
 
 	// when
-	updateValue(host)
-	updateValue(host)
+	updateValue(2, domain.REMOVE, host)
 	second_value := getCurrentValue(host)
 
 	// then
-	if second_value != domain.DomainValue(second_expected) {
-		t.Errorf("Should have value %d, but had %d after updates", second_expected, second_value)
-	}
+	assert.True(t, second_value.Contains(domain.IntElement{1}))
+	assert.False(t, second_value.Contains(domain.IntElement{2}))
 }
 
 func TestCrdtResetIntegration(t *testing.T) {
 	setup()
 	// given
-	first_expected := domain.DomainValue(2)
-	after_reset_expected := domain.DomainValue(0)
+	first_expected := crdt.CreateLwwes()
+	now := time.Now()
+	first_expected.Add(&domain.IntElement{1}, now)
+	second_expected := crdt.CreateLwwes()
+	second_expected.Add(&domain.IntElement{1}, now)
+	second_expected.Add(&domain.IntElement{2}, now)
+	updateValue(1, domain.ADD, host)
+	updateValue(2, domain.ADD, host)
 
 	// when
-	updateValue(host)
-	updateValue(host)
 	first_value := getCurrentValue(host)
 
 	// then
-	if first_value != domain.DomainValue(first_expected) {
-		t.Errorf("Should have value %d, but had %d before updates", first_expected, first_value)
-	}
+	assert.True(t, first_value.Contains(domain.IntElement{1}))
+	assert.True(t, first_value.Contains(domain.IntElement{2}))
 
 	// when
 	reset(host)
 	second_value := getCurrentValue(host)
 
 	// then
-	if second_value != domain.DomainValue(after_reset_expected) {
-		t.Errorf("Should have value %d, but had %d after updates", after_reset_expected, second_value)
-	}
+	assert.False(t, second_value.Contains(domain.IntElement{1}))
+	assert.False(t, second_value.Contains(domain.IntElement{2}))
 }
 
-func getCurrentValue(host string) domain.DomainValue {
+func getCurrentValue(host string) crdt.Lwwes {
 	rq, _ := http.NewRequest("GET", host+"/status", nil)
 	client := http.Client{}
 	rs, _ := client.Do(rq)
-	bodyBytes, _ := ioutil.ReadAll(rs.Body)
-	domain_value, _ := strconv.Atoi(string(bodyBytes))
-	return domain.DomainValue(domain_value)
+	var dv CurrentStateDto
+	decoder := json.NewDecoder(rs.Body)
+	err := decoder.Decode(&dv)
+	if err != nil {
+		panic(err)
+	}
+	defer rs.Body.Close()
+	return lwwesFromDto(dv)
 }
 
-func updateValue(host string) {
-	rq, _ := http.NewRequest("POST", host+"/status/update", nil)
+func updateValue(val int, op domain.UpdateOperationType, host string) {
 	client := http.Client{}
+	operation := CrdtOperation{domain.IntElement{Value: val}, op}
+	jsonVal, err := json.Marshal(operation)
+	if err != nil {
+		panic(err)
+	}
+	body := bytes.NewBuffer(jsonVal)
+	rq, _ := http.NewRequest("POST", host+"/status/update", body)
 	client.Do(rq)
 }
 
@@ -118,4 +138,20 @@ func reset(host string) {
 	rq, _ := http.NewRequest("POST", host+"/status/reset", nil)
 	client := http.Client{}
 	client.Do(rq)
+}
+
+func TestElementsMap2(t *testing.T) {
+	simple_map := map[crdt.Element]time.Time{}
+	impl := domain.IntElement{1}
+	simple_map[impl] = time.Now()
+
+	impl2 := domain.IntElement{2}
+	simple_map[impl2] = time.Now()
+
+	aad := domain.IntElement{1}
+	_, v2 := simple_map[aad]
+	//print(v1)
+	if !v2 {
+		t.Fail()
+	}
 }
