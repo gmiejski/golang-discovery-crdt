@@ -51,9 +51,9 @@ func CreateDiscoveryController(discovery_client *DiscoveryClient) DiscoveryContr
 	return &dc
 }
 
-func RegisterDiscoveryEndpoints(discovery_client *DiscoveryClient, srv *http.Server) {
+func RegisterDiscoveryEndpoints(discovery_client *DiscoveryClient, srv *http.ServeMux) {
 	dc := CreateDiscoveryController(discovery_client)
-	http.HandleFunc("/cluster/info", rest.GET(dc.ClusterInfo))
-	http.HandleFunc("/cluster/heartbeat", rest.POST(dc.Heartbeat))
+	srv.HandleFunc("/cluster/info", rest.GET(dc.ClusterInfo))
+	srv.HandleFunc("/cluster/heartbeat", rest.POST(dc.Heartbeat))
 }
 

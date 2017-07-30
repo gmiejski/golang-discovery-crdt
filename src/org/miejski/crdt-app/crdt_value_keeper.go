@@ -3,21 +3,22 @@ package main
 import (
 	"org/miejski/domain"
 	"sync"
+	"org/miejski/crdt"
 )
 
 type CrdtValueKeeper interface {
-	Get() domain.DomainValue
+	Get() crdt.Lwwes
 	Reset()
-	UpdateChannel() (chan domain.DomainUpdateValue)
+	UpdateChannel() (chan domain.DomainUpdateObject)
 }
 
 type crdtValueKeeperImpl struct {
 	stateKeeper    *domain.DomainKeeper
-	update_channel chan domain.DomainUpdateValue
+	update_channel chan domain.DomainUpdateObject
 	lock sync.Mutex
 }
 
-func (c *crdtValueKeeperImpl) UpdateChannel() (chan domain.DomainUpdateValue) {
+func (c *crdtValueKeeperImpl) UpdateChannel() (chan domain.DomainUpdateObject) {
 	return c.update_channel
 }
 
@@ -28,7 +29,7 @@ func (c *crdtValueKeeperImpl) Reset() {
 	c.lock.Unlock()
 }
 
-func (c *crdtValueKeeperImpl) Get() domain.DomainValue {
+func (c *crdtValueKeeperImpl) Get() crdt.Lwwes {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	state_keeper := *c.stateKeeper
@@ -36,7 +37,7 @@ func (c *crdtValueKeeperImpl) Get() domain.DomainValue {
 }
 
 func CreateSafeValueKeeper(dk *domain.DomainKeeper) CrdtValueKeeper {
-	channel := make(chan domain.DomainUpdateValue)
+	channel := make(chan domain.DomainUpdateObject)
 
 	k := crdtValueKeeperImpl{stateKeeper: dk, update_channel: channel}
 	go func() {

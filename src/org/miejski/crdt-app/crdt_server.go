@@ -31,14 +31,17 @@ func NewServer(
 }
 
 func (server *crdtServerImpl) Start(port int) {
-	srv := &http.Server{Addr: fmt.Sprintf(":%d", port)}
-	http.HandleFunc("/status", rest.GET(server.state_controller.Status))
-	http.HandleFunc("/status/update", rest.POST(server.state_controller.Increment))
-	http.HandleFunc("/status/reset", rest.POST(server.state_controller.Reset))
+	mux := http.NewServeMux()
+	mux.HandleFunc("/status", rest.GET(server.state_controller.Status))
+	mux.HandleFunc("/status/readable", rest.GET(server.state_controller.ReadableStatus))
+	mux.HandleFunc("/status/update", rest.POST(server.state_controller.Increment))
+	mux.HandleFunc("/status/reset", rest.POST(server.state_controller.Reset))
 
-	discovery.RegisterDiscoveryEndpoints(&server.discovery_client, srv)
+	discovery.RegisterDiscoveryEndpoints(&server.discovery_client, mux)
 	discovery.CreateDiscoveryHeartbeater(&server.discovery_client).Start(2 * time.Second)
 	discovery.NewDeadNodeMarker(&server.discovery_client).StartMarking(5 * time.Second)
+
+	srv := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler: mux}
 
 	fmt.Println(fmt.Sprintf("Starting server at port %d", port))
 	log.Fatal(srv.ListenAndServe())

@@ -11,17 +11,19 @@ import (
 )
 
 var client = http.Client{}
-var url string = "http://localhost:8080"
+var port int = 7779
+var url string = fmt.Sprintf("http://localhost:%d", port)
 
 func TestControllerUnmarshallingHeartbeat(t *testing.T) {
 	// given
 	dc := new(MockDiscoveryClient)
 	c := DiscoveryClient(dc)
-	srv := &http.Server{Addr: fmt.Sprintf(":%d", 8080)}
-	RegisterDiscoveryEndpoints(&c, srv)
+	mux := http.NewServeMux()
+	srv := &http.Server{Addr: fmt.Sprintf(":%d", port), Handler:mux}
 	expected_info := HeartbeatInfo{Url: url}
-	go startServer(srv)
-	defer srv.Shutdown(nil)
+	RegisterDiscoveryEndpoints(&c, mux)
+	go startServer(srv, &c, t)
+
 	dc.On("RegisterHeartbeat", expected_info)
 
 	// when
@@ -29,7 +31,7 @@ func TestControllerUnmarshallingHeartbeat(t *testing.T) {
 
 	// then
 	dc.AssertCalled(t, "RegisterHeartbeat", expected_info)
-
+	defer srv.Shutdown(nil)
 }
 func createRequestWithHearbeat(url string, info HeartbeatInfo) (*http.Request) {
 	jsonVal, err := json.Marshal(info)
@@ -40,8 +42,13 @@ func createRequestWithHearbeat(url string, info HeartbeatInfo) (*http.Request) {
 	rq, _ := http.NewRequest("POST", url+"/cluster/heartbeat", body)
 	return rq
 }
-func startServer(srv *http.Server) {
-	srv.ListenAndServe()
+func startServer(srv *http.Server, dc *DiscoveryClient, t *testing.T) {
+	//RegisterDiscoveryEndpoints(dc, srv)
+	//CreateDiscoveryHeartbeater(dc).Start(2 * time.Second)
+	err := srv.ListenAndServe()
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 // MOCKS
