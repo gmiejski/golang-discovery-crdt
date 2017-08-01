@@ -1,6 +1,10 @@
 package discovery
 
-import "time"
+import (
+	"time"
+	"io"
+	"encoding/json"
+)
 
 type State string
 
@@ -12,10 +16,19 @@ type AppNode struct {
 
 const (
 	ACTIVE State = "ACTIVE"
-	DEAD State = "DEAD"
+	DEAD   State = "DEAD"
 )
 
 type ClusterStatus struct {
 	NodeUrl string
 	Nodes   []AppNode
+}
+
+func (c *ClusterStatus) Unmarshal(data io.ReadCloser) error {
+	decoder := json.NewDecoder(data)
+	err := decoder.Decode(c)
+	if err != nil {
+		panic(err)
+	}
+	return nil
 }

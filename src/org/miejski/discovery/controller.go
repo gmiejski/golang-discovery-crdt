@@ -20,7 +20,6 @@ type simpleDiscoveryController struct{
 func (dc *simpleDiscoveryController) ClusterInfo(w http.ResponseWriter, request *http.Request) {
 	client := dc.discovery_client
 	info := (*client).ClusterInfo()
-	//fmt.Println(info)
 	val, err := json.Marshal(&info)
 	if err != nil {
 		panic(err)

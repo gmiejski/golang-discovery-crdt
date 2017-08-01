@@ -45,3 +45,4 @@ func lwwesFromDto(dto CurrentStateDto) crdt.Lwwes {
 type ReadableState struct {
 	Values []string
 }
+
