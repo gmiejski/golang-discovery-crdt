@@ -58,7 +58,7 @@ func (c *StateControllerImpl) ReadableStatus(w http.ResponseWriter, request *htt
 	value := c.stateKeeper.Get()
 	converted := toReadableState(value)
 	json_object, _ := json.Marshal(converted)
-	fmt.Fprint(w, json_object)
+	fmt.Fprint(w, string(json_object))
 }
 
 func (c *StateControllerImpl) Increment(w http.ResponseWriter, request *http.Request) {

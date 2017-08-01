@@ -5,11 +5,23 @@ import (
 	"org/miejski/crdt"
 	"org/miejski/domain"
 	"strconv"
+	"io"
+	"encoding/json"
 )
 
 type CurrentStateDto struct {
 	AddSet    map[string]time.Time
 	RemoveSet map[string]time.Time
+}
+
+func (c *CurrentStateDto) Unmarshal(data io.ReadCloser) error {
+	decoder := json.NewDecoder(data)
+	defer data.Close()
+	err := decoder.Decode(c)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func toCurrentStateDto(lwwes crdt.Lwwes) CurrentStateDto {
