@@ -9,14 +9,19 @@ type DomainKeeper interface {
 	Add(DomainUpdateObject)
 	Get() crdt.Lwwes
 	Reset()
-}
-
-func UnsafeDomainKeeper() DomainKeeper {
-	return &unsafeDomainKeeper{crdt.CreateLwwes()}
+	Set(lwwes crdt.Lwwes)
 }
 
 type unsafeDomainKeeper struct {
 	value crdt.Lwwes
+}
+
+func (dk *unsafeDomainKeeper) Set(lwwes crdt.Lwwes) {
+	dk.value = lwwes
+}
+
+func UnsafeDomainKeeper() DomainKeeper {
+	return &unsafeDomainKeeper{crdt.CreateLwwes()}
 }
 
 func (dk *unsafeDomainKeeper) Add(val DomainUpdateObject) {

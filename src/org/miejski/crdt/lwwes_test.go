@@ -42,17 +42,17 @@ func TestMergeOperation(t *testing.T) {
 	lwwes := CreateLwwes()
 	now := time.Now()
 	lwwes.Add(el(1), now.Add(time.Minute))
-	lwwes.Add(el(2), now.Add(2 * time.Minute))
-	lwwes.Add(el(3), now.Add(3 * time.Minute))
-	lwwes.Add(el(6), now.Add(7 * time.Minute))
-	lwwes.Remove(el(3), now.Add(8 * time.Minute))
+	lwwes.Add(el(2), now.Add(2*time.Minute))
+	lwwes.Add(el(3), now.Add(3*time.Minute))
+	lwwes.Add(el(6), now.Add(7*time.Minute))
+	lwwes.Remove(el(3), now.Add(8*time.Minute))
 
 	lwwes2 := CreateLwwes()
-	lwwes2.Add(el(4), now.Add(2 * time.Minute))
-	lwwes2.Add(el(5), now.Add(3 * time.Minute))
-	lwwes2.Add(el(6), now.Add(5 * time.Minute))
-	lwwes2.Remove(el(6), now.Add(6 * time.Minute))
-	lwwes2.Remove(el(2), now.Add(7 * time.Minute))
+	lwwes2.Add(el(4), now.Add(2*time.Minute))
+	lwwes2.Add(el(5), now.Add(3*time.Minute))
+	lwwes2.Add(el(6), now.Add(5*time.Minute))
+	lwwes2.Remove(el(6), now.Add(6*time.Minute))
+	lwwes2.Remove(el(2), now.Add(7*time.Minute))
 
 	merged := lwwes.Merge(&lwwes2)
 
@@ -64,7 +64,19 @@ func TestMergeOperation(t *testing.T) {
 	assert.True(t, merged.Contains(el(6)))
 }
 
+func TestGetAllValues(t *testing.T) {
+	lwwes := CreateLwwes()
+	now := time.Now()
+	lwwes.Add(el(1), now.Add(time.Minute))
+	lwwes.Add(el(2), now.Add(2*time.Minute))
+	lwwes.Add(el(3), now.Add(3*time.Minute))
+	lwwes.Add(el(4), now.Add(7*time.Minute))
+	lwwes.Remove(el(2), now.Add(8*time.Minute))
+	lwwes.Remove(el(4), now.Add(9*time.Minute))
 
+	// then
+	assert.True(t, len(lwwes.Get()) == 2)
+}
 
 func el(i int) Element {
 	element := IntElement{i}

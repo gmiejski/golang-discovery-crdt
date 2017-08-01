@@ -12,7 +12,7 @@ var times int = 1000
 func TestCrdtConsistency(t *testing.T) {
 	// given
 	keeper := domain.UnsafeDomainKeeper()
-	dk := CreateSafeValueKeeper(&keeper)
+	dk := CreateSafeValueKeeper(keeper)
 	var wg sync.WaitGroup
 
 	// when

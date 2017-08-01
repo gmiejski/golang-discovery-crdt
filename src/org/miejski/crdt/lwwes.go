@@ -3,6 +3,8 @@ package crdt
 import (
 	"time"
 	"fmt"
+	"io"
+	"encoding/json"
 )
 
 type crdt interface {
@@ -25,6 +27,16 @@ type LastWriteWinsElementSet interface {
 type Lwwes struct {
 	Add_set    map[Element]time.Time
 	Remove_set map[Element]time.Time
+}
+
+func (lwwes *Lwwes) Unmarshal(data io.ReadCloser) error {
+	decoder := json.NewDecoder(data)
+	defer data.Close()
+	err := decoder.Decode(lwwes)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func CreateLwwes() Lwwes {
@@ -61,11 +73,22 @@ func (s *Lwwes) Remove(element Element, t time.Time) bool {
 	return true
 }
 
-func (s *Lwwes) Get() []Element {
+func (s *Lwwes) GetNotWorkingImplementation() []Element {
 	result := make([]Element, 0)
 	for added_element, add_time := range s.Add_set {
 		removed_time, removed := s.Remove_set[added_element]
 		if !removed || add_time.After(removed_time) {
+			result = append(result, added_element)
+		}
+	}
+	return result
+}
+
+func (s *Lwwes) Get() []Element {
+	result := make([]Element, 0)
+	for added_element := range s.Add_set {
+		state, _ := s.elementInfo(added_element)
+		if state == ADDED {
 			result = append(result, added_element)
 		}
 	}

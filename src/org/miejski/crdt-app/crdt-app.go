@@ -18,7 +18,7 @@ func main() {
 	this_server_url := fmt.Sprintf("http://localhost:%d", *port)
 	discovery_client := discovery.NewDiscoveryClient(this_server_url, *joinAddress)
 	keeper := domain.UnsafeDomainKeeper()
-	dk := CreateSafeValueKeeper(&keeper)
+	dk := CreateSafeValueKeeper(keeper)
 
 	state_controller := newStateController(&discovery_client, &dk)
 

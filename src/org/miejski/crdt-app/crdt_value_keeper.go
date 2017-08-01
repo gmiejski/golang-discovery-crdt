@@ -10,6 +10,7 @@ type CrdtValueKeeper interface {
 	Get() crdt.Lwwes
 	Reset()
 	UpdateChannel() (chan domain.DomainUpdateObject)
+	Merge(lwwes crdt.Lwwes)
 }
 
 type crdtValueKeeperImpl struct {
@@ -36,10 +37,28 @@ func (c *crdtValueKeeperImpl) Get() crdt.Lwwes {
 	return state_keeper.Get()
 }
 
-func CreateSafeValueKeeper(dk *domain.DomainKeeper) CrdtValueKeeper {
+func (c *crdtValueKeeperImpl) Merge(new crdt.Lwwes) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	state_keeper := *c.stateKeeper
+	old := state_keeper.Get()
+	merge := (&old).Merge(&new)
+	d := crdt.LastWriteWinsElementSet(merge)
+	dd := &d
+	ccc:= (*dd).(*crdt.Lwwes)
+	c.updateNotSafe(*ccc)
+}
+
+func (c *crdtValueKeeperImpl) updateNotSafe(lwwes crdt.Lwwes) {
+	state_keeper := *c.stateKeeper
+	state_keeper.Set(lwwes)
+}
+
+func CreateSafeValueKeeper(dk domain.DomainKeeper) CrdtValueKeeper {
 	channel := make(chan domain.DomainUpdateObject)
 
-	k := crdtValueKeeperImpl{stateKeeper: dk, update_channel: channel}
+	k := crdtValueKeeperImpl{stateKeeper: &dk, update_channel: channel}
 	go func() {
 		for {
 			x, ok := <-channel

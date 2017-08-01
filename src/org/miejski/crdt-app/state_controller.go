@@ -17,6 +17,12 @@ type StateController interface {
 	ReadableStatus(writer http.ResponseWriter, request *http.Request)
 	Increment(writer http.ResponseWriter, request *http.Request)
 	Reset(writer http.ResponseWriter, request *http.Request)
+	SynchronizeData(writer http.ResponseWriter, request *http.Request)
+}
+
+type StateControllerImpl struct {
+	client      discovery.DiscoveryClient
+	stateKeeper CrdtValueKeeper
 }
 
 func newStateController(
@@ -42,11 +48,6 @@ func doEvery(d time.Duration, f func(time.Time)) {
 	}
 }
 
-type StateControllerImpl struct {
-	client      discovery.DiscoveryClient
-	stateKeeper CrdtValueKeeper
-}
-
 func (c *StateControllerImpl) Status(w http.ResponseWriter, request *http.Request) {
 	value := c.stateKeeper.Get()
 	converted := toCurrentStateDto(value)
@@ -65,6 +66,13 @@ func (c *StateControllerImpl) Increment(w http.ResponseWriter, request *http.Req
 	updateInfo := readUpdateInfo(request)
 	update_object := domain.DomainUpdateObject{Value: updateInfo.Value.Value, Operation: updateInfo.Operation}
 	c.stateKeeper.UpdateChannel() <- update_object
+}
+
+func (c *StateControllerImpl) SynchronizeData(writer http.ResponseWriter, request *http.Request) {
+	var coming_data CurrentStateDto
+	simple_json.Unmarshal(request.Body, &coming_data)
+	lwwes :=lwwesFromDto(coming_data)
+	c.stateKeeper.Merge(lwwes)
 }
 
 func toReadableState(lwwes crdt.Lwwes) ReadableState {
