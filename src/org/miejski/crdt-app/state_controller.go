@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"org/miejski/crdt"
 	"strconv"
+	"org/miejski/simple_json"
 )
 
 type StateController interface {
@@ -49,31 +50,21 @@ type StateControllerImpl struct {
 func (c *StateControllerImpl) Status(w http.ResponseWriter, request *http.Request) {
 	value := c.stateKeeper.Get()
 	converted := toCurrentStateDto(value)
-	fmt.Println(converted)
-	val, err := json.Marshal(converted)
-
-	if err != nil {
-		panic(err)
-	}
+	val, _ := json.Marshal(converted)
 	fmt.Fprint(w, string(val))
+}
+
+func (c *StateControllerImpl) ReadableStatus(w http.ResponseWriter, request *http.Request) {
+	value := c.stateKeeper.Get()
+	converted := toReadableState(value)
+	json_object, _ := json.Marshal(converted)
+	fmt.Fprint(w, string(json_object))
 }
 
 func (c *StateControllerImpl) Increment(w http.ResponseWriter, request *http.Request) {
 	updateInfo := readUpdateInfo(request)
 	update_object := domain.DomainUpdateObject{Value: updateInfo.Value.Value, Operation: updateInfo.Operation}
 	c.stateKeeper.UpdateChannel() <- update_object
-}
-
-func (c *StateControllerImpl) ReadableStatus(w http.ResponseWriter, request *http.Request) {
-	value := c.stateKeeper.Get()
-	converted := toReadableState(value)
-	fmt.Println(converted)
-	val, err := json.Marshal(converted)
-
-	if err != nil {
-		panic(err)
-	}
-	fmt.Fprint(w, string(val))
 }
 
 func toReadableState(lwwes crdt.Lwwes) ReadableState {
@@ -89,21 +80,14 @@ func toReadableState(lwwes crdt.Lwwes) ReadableState {
 }
 
 func readUpdateInfo(request *http.Request) CrdtOperation {
-	decoder := json.NewDecoder(request.Body)
 	var operation CrdtOperation
-	err := decoder.Decode(&operation)
+	err := simple_json.Unmarshal(request.Body, &operation)
 	if err != nil {
 		panic(err)
 	}
-	defer request.Body.Close()
 	return operation
 }
 
 func (c *StateControllerImpl) Reset(w http.ResponseWriter, request *http.Request) {
 	c.stateKeeper.Reset()
-}
-
-type CrdtOperation struct {
-	Value     domain.IntElement
-	Operation domain.UpdateOperationType
 }

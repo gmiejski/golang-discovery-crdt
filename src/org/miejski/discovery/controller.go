@@ -5,6 +5,7 @@ import (
 	"org/miejski/rest"
 	"fmt"
 	"encoding/json"
+	"org/miejski/simple_json"
 )
 
 type DiscoveryController interface {
@@ -20,7 +21,6 @@ type simpleDiscoveryController struct{
 func (dc *simpleDiscoveryController) ClusterInfo(w http.ResponseWriter, request *http.Request) {
 	client := dc.discovery_client
 	info := (*client).ClusterInfo()
-	//fmt.Println(info)
 	val, err := json.Marshal(&info)
 	if err != nil {
 		panic(err)
@@ -35,12 +35,8 @@ func (dc *simpleDiscoveryController) Heartbeat(w http.ResponseWriter, request *h
 }
 
 func readHeartbeatInfo(request *http.Request) HeartbeatInfo {
-	decoder := json.NewDecoder(request.Body)
 	var t HeartbeatInfo
-	err := decoder.Decode(&t)
-	if err != nil {
-		panic(err)
-	}
+	simple_json.Unmarshal(request.Body, &t)
 	defer request.Body.Close()
 	return t
 }

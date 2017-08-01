@@ -4,8 +4,8 @@ import (
 	"time"
 	"fmt"
 	"net/http"
-	"encoding/json"
 	"sync"
+	"org/miejski/simple_json"
 )
 
 type DiscoveryClient interface {
@@ -61,12 +61,8 @@ func getClusterInfo(joinAddress string) ClusterStatus {
 	client := http.Client{}
 	rs, _ := client.Do(rq)
 
-	decoder := json.NewDecoder(rs.Body)
 	var value ClusterStatus
-	err := decoder.Decode(&value)
-	if err != nil {
-		panic(err)
-	}
+	simple_json.Unmarshal(rs.Body, &value)
 	return value
 }
 

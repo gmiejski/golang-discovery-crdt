@@ -13,6 +13,7 @@ import (
 	"time"
 	"bytes"
 	"github.com/stretchr/testify/assert"
+	"org/miejski/simple_json"
 )
 var port int = 7778
 var host string = fmt.Sprintf("http://localhost:%d", port)
@@ -113,12 +114,7 @@ func getCurrentValue(host string) crdt.Lwwes {
 	client := http.Client{}
 	rs, _ := client.Do(rq)
 	var dv CurrentStateDto
-	decoder := json.NewDecoder(rs.Body)
-	err := decoder.Decode(&dv)
-	if err != nil {
-		panic(err)
-	}
-	defer rs.Body.Close()
+	simple_json.Unmarshal(rs.Body, &dv)
 	return lwwesFromDto(dv)
 }
 
