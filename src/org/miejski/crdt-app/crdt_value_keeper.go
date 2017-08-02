@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"bytes"
 	"fmt"
+	"org/miejski/simple_json"
 )
 
 type CrdtValueKeeper interface {
@@ -16,6 +17,7 @@ type CrdtValueKeeper interface {
 	Reset()
 	UpdateChannel() (chan domain.DomainUpdateObject)
 	Merge(lwwes crdt.Lwwes)
+	synchronize()
 }
 
 type crdtValueKeeperImpl struct {
@@ -23,6 +25,16 @@ type crdtValueKeeperImpl struct {
 	stateKeeper      *domain.DomainKeeper
 	update_channel   chan domain.DomainUpdateObject
 	lock             sync.Mutex
+}
+
+func (c *crdtValueKeeperImpl) synchronize() {
+	nodes := (*c.discovery_client).CurrentActiveNodes()
+	if len(nodes) == 0 {
+		return
+	}
+	first_node := nodes[0]
+	lwwes := getState(first_node)
+	c.Merge(lwwes)
 }
 
 func (c *crdtValueKeeperImpl) UpdateChannel() (chan domain.DomainUpdateObject) {
@@ -100,4 +112,18 @@ func send(node discovery.AppNode, object []byte) {
 		fmt.Println(rs.Status)
 	}
 	fmt.Println(rs.Status)
+}
+
+func getState(node discovery.AppNode) crdt.Lwwes {
+	fmt.Println("sending lwwes after update to: " + node.Url)
+	client := http.Client{}
+	rq, _ := http.NewRequest("GET", node.Url+"/status", nil)
+	rs, err := client.Do(rq)
+	if err != nil {
+		fmt.Println(err)
+	}
+	var state CurrentStateDto
+	simple_json.Unmarshal(rs.Body, &state)
+	lwwes := lwwesFromDto(state)
+	return lwwes
 }
