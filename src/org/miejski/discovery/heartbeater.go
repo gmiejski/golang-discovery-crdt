@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"bytes"
 	"time"
-	"fmt"
 )
 
 type Heartbeater interface {
@@ -36,7 +35,7 @@ func (heartbeater *discoveryHeartbeater) Start(d time.Duration) {
 func (heartbeater *discoveryHeartbeater) PublishHeartbeat() {
 	client := heartbeater.discovery_client
 	info := (*client).HeartbeatInfo()
-	fmt.Println(fmt.Sprintf("publishing heartbeat to %d nodes", len(info.Cluster.Nodes)))
+	//fmt.Println(fmt.Sprintf("publishing heartbeat to %d nodes", len(info.Cluster.Nodes)))
 	for _, node := range info.Cluster.Nodes {
 		heartbeater.sendHeartbeatInfo(info, node.Url)
 	}

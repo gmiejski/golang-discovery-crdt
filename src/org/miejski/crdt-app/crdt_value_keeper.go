@@ -4,6 +4,11 @@ import (
 	"org/miejski/domain"
 	"sync"
 	"org/miejski/crdt"
+	"org/miejski/discovery"
+	"encoding/json"
+	"net/http"
+	"bytes"
+	"fmt"
 )
 
 type CrdtValueKeeper interface {
@@ -14,9 +19,10 @@ type CrdtValueKeeper interface {
 }
 
 type crdtValueKeeperImpl struct {
-	stateKeeper    *domain.DomainKeeper
-	update_channel chan domain.DomainUpdateObject
-	lock sync.Mutex
+	discovery_client *discovery.DiscoveryClient
+	stateKeeper      *domain.DomainKeeper
+	update_channel   chan domain.DomainUpdateObject
+	lock             sync.Mutex
 }
 
 func (c *crdtValueKeeperImpl) UpdateChannel() (chan domain.DomainUpdateObject) {
@@ -46,7 +52,7 @@ func (c *crdtValueKeeperImpl) Merge(new crdt.Lwwes) {
 	merge := (&old).Merge(&new)
 	d := crdt.LastWriteWinsElementSet(merge)
 	dd := &d
-	ccc:= (*dd).(*crdt.Lwwes)
+	ccc := (*dd).(*crdt.Lwwes)
 	c.updateNotSafe(*ccc)
 }
 
@@ -55,10 +61,10 @@ func (c *crdtValueKeeperImpl) updateNotSafe(lwwes crdt.Lwwes) {
 	state_keeper.Set(lwwes)
 }
 
-func CreateSafeValueKeeper(dk domain.DomainKeeper) CrdtValueKeeper {
+func CreateSafeValueKeeper(dk domain.DomainKeeper, ds *discovery.DiscoveryClient) CrdtValueKeeper {
 	channel := make(chan domain.DomainUpdateObject)
 
-	k := crdtValueKeeperImpl{stateKeeper: &dk, update_channel: channel}
+	k := crdtValueKeeperImpl{stateKeeper: &dk, update_channel: channel, discovery_client: ds}
 	go func() {
 		for {
 			x, ok := <-channel
@@ -68,8 +74,30 @@ func CreateSafeValueKeeper(dk domain.DomainKeeper) CrdtValueKeeper {
 			keeper := *k.stateKeeper
 			k.lock.Lock()
 			keeper.Add(x)
+
+			update_object, _ := json.Marshal(toCurrentStateDto(keeper.Get()))
+
+			fmt.Println("Im in")
+
+			nodes := (*k.discovery_client).CurrentActiveNodes()
+			for i := range nodes {
+				send(nodes[i], update_object)
+			}
+
 			k.lock.Unlock()
 		}
 	}()
 	return &k
+}
+
+func send(node discovery.AppNode, object []byte) {
+	fmt.Println("sending lwwes after update to: " + node.Url)
+	client := http.Client{}
+	rq, _ := http.NewRequest("POST", node.Url+"/status/synchronize", bytes.NewBuffer(object))
+	rs, err := client.Do(rq)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println(rs.Status)
+	}
+	fmt.Println(rs.Status)
 }

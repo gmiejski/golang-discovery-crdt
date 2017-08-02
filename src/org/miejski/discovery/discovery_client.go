@@ -75,7 +75,7 @@ func (client *inMemoryDiscoveryClient) RegisterHeartbeat(node_info HeartbeatInfo
 	defer client.l.Unlock()
 	exists, node := client.containsNode(node_info.Url)
 	if exists {
-		fmt.Println(fmt.Sprintf("Marking node as ALIVE: %s", node.Url))
+		//fmt.Println(fmt.Sprintf("Marking node as ALIVE: %s", node.Url))
 		client.ChangeStatus(node.Url, node.LastUpdate, ACTIVE)
 	} else {
 		node := AppNode{Url: node_info.Url, State: ACTIVE, LastUpdate: time.Now()}
@@ -99,10 +99,11 @@ func (client *inMemoryDiscoveryClient) ClusterInfo() ClusterStatus {
 }
 
 func (client *inMemoryDiscoveryClient) CurrentActiveNodes() []AppNode {
+	nodes := client.AllNodes()
 	client.l.Lock()
 	defer client.l.Unlock()
 	result := make([]AppNode, 0)
-	for _, v := range client.AllNodes() {
+	for _, v := range nodes {
 		if v.State == ACTIVE {
 			result = append(result, v)
 		}

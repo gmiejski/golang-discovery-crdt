@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 func prepareServer() CrdtServer {
 	discovery_client := discovery.NewDiscoveryClient("host", "")
 	unsafe_keeper := domain.UnsafeDomainKeeper()
-	dk := CreateSafeValueKeeper(unsafe_keeper)
+	dk := CreateSafeValueKeeper(unsafe_keeper, &discovery_client)
 	state_controller := newStateController(&discovery_client, &dk)
 	server := NewServer(&state_controller, &discovery_client)
 

@@ -2,7 +2,6 @@ package discovery
 
 import (
 	"time"
-	"fmt"
 )
 
 var time_alive time.Duration = 5 * time.Second
@@ -32,7 +31,7 @@ func start(dc *DiscoveryClient, every time.Duration) {
 }
 
 func markDeadNodes(dc *DiscoveryClient) {
-	fmt.Println("Start marking nodes as DEAD")
+	//fmt.Println("Start marking nodes as DEAD")
 	dead_nodes := make([]AppNode, 0)
 	for _, node := range (*dc).AllNodes() {
 		if node.State != DEAD && node.LastUpdate.Add(time_alive).Before(time.Now()) {
@@ -40,5 +39,5 @@ func markDeadNodes(dc *DiscoveryClient) {
 			(*dc).ChangeStatus(node.Url, node.LastUpdate, DEAD)
 		}
 	}
-	fmt.Println(fmt.Sprintf("Nodes marked as dead #%v", dead_nodes))
+	//fmt.Println(fmt.Sprintf("Nodes marked as dead #%v", dead_nodes))
 }

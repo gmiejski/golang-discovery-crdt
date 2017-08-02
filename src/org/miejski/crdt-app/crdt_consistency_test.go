@@ -5,14 +5,16 @@ import (
 	"org/miejski/domain"
 	"sync"
 	"github.com/stretchr/testify/assert"
+	"org/miejski/discovery"
 )
 
 var times int = 1000
 
 func TestCrdtConsistency(t *testing.T) {
 	// given
+	discovery_client := discovery.NewDiscoveryClient("host", "")
 	keeper := domain.UnsafeDomainKeeper()
-	dk := CreateSafeValueKeeper(keeper)
+	dk := CreateSafeValueKeeper(keeper, &discovery_client)
 	var wg sync.WaitGroup
 
 	// when

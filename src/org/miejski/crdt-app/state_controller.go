@@ -69,21 +69,22 @@ func (c *StateControllerImpl) Increment(w http.ResponseWriter, request *http.Req
 }
 
 func (c *StateControllerImpl) SynchronizeData(writer http.ResponseWriter, request *http.Request) {
+	fmt.Println("Synchronizing data!!!")
 	var coming_data CurrentStateDto
 	simple_json.Unmarshal(request.Body, &coming_data)
-	lwwes :=lwwesFromDto(coming_data)
+	lwwes := lwwesFromDto(coming_data)
 	c.stateKeeper.Merge(lwwes)
 }
 
 func toReadableState(lwwes crdt.Lwwes) ReadableState {
 	values := make([]string, 0)
-	for _, element := range lwwes.Get() {
-		intElement, ok := element.(domain.IntElement)
-		if ok {
-			values = append(values, strconv.Itoa(intElement.Value))
-		}
+	elements := lwwes.Get()
+	for _, element := range elements {
+		val, _ := strconv.Atoi(element.Get())
+		intElement := domain.IntElement{Value: val}
+		values = append(values, strconv.Itoa(intElement.Value))
 	}
-	result := ReadableState{Values:values}
+	result := ReadableState{Values: values}
 	return result
 }
 
