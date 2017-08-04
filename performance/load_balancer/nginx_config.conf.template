@@ -1,0 +1,16 @@
+events {
+  worker_connections  4096;  ## Default: 1024
+}
+
+http {
+  upstream crdt_app {
+    ${servers}
+  }
+
+  server {
+    listen 9999;
+    location / {
+      proxy_pass http://crdt_app;
+    }
+  }
+}
