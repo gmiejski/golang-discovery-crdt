@@ -1,10 +1,12 @@
 # golang-discovery-crdt
 
-Very simple app to play with Golang for the first time.
+Very simple app to play with Golang and Locust performance testing for the first time.
 
 Each app consist of rest service which holds in-memory CRDT of type Last-Write-Wins Element Set.
 
 Nodes can connect with each other and form a cluster to share information and stay eventually consistent while updates to LWWES are being posted.
+
+Locust scripts checks both update operations performance and cluster consistency convergence.
 
 ## Running app:
 * build app:
@@ -24,6 +26,11 @@ Nodes can connect with each other and form a cluster to share information and st
 
 ## running tests:
 
+
+* Test dependencies:
+    
+    `go get github.com/stretchr/testify`
+
 * Run all unit tests:
 
     `go test -v -race org/miejski/... -short `
@@ -41,7 +48,3 @@ Nodes can connect with each other and form a cluster to share information and st
     * `./load_balancer/start_nginx.sh`
     * `locust -f main_load_test.py --host=http://localhost:9999 -c 300 -r 100 -n 500 --no-web`
         
-
-## Dependencies:
-
-* `go get github.com/stretchr/testify`
