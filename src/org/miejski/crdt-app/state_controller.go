@@ -79,7 +79,7 @@ func toReadableState(lwwes crdt.Lwwes) ReadableState {
 	values := make([]string, 0)
 	elements := lwwes.Get()
 	for _, element := range elements {
-		values = append(values, element.Get())
+		values = append(values, element)
 	}
 	result := ReadableState{Values: values}
 	return result

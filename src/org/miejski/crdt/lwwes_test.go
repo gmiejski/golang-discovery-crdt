@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 	"github.com/stretchr/testify/assert"
+	"strconv"
 )
 
 func TestAddingRemovingElements(t *testing.T) {
@@ -78,7 +79,7 @@ func TestGetAllValues(t *testing.T) {
 	assert.True(t, len(lwwes.Get()) == 2)
 }
 
-func el(i int) Element {
-	element := IntElement{i}
+func el(i int) string {
+	element := strconv.Itoa(i)
 	return element
 }

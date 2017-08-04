@@ -53,7 +53,8 @@ def compare_results():
     # current_value = int(.content) // TODO check state
     # if current_value != requests_count:
     #     raise Exception("Inconsistent system! Expected {} got {}".format(requests_count, current_value))
-    # print(current_value)
+    json_rs = current_value.json()
+    print("Number of values in result: {}".format(len(json_rs["Values"])))
     print("Finish")
 
 

@@ -3,6 +3,7 @@ package domain
 import (
 	"time"
 	"org/miejski/crdt"
+	"strconv"
 )
 
 type DomainKeeper interface {
@@ -29,12 +30,12 @@ func (dk *unsafeDomainKeeper) Add(val DomainUpdateObject) {
 	case ADD:
 		{
 			value := (*dk).value
-			value.Add(IntElement{val.Value}, time.Now())
+			value.Add(strconv.Itoa(val.Value), time.Now())
 		}
 	case REMOVE:
 		{
 			value := (*dk).value
-			value.Remove(IntElement{val.Value}, time.Now())
+			value.Remove(strconv.Itoa(val.Value), time.Now())
 		}
 	}
 }

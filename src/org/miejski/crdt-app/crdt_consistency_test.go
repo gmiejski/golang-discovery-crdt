@@ -26,7 +26,7 @@ func TestCrdtConsistency(t *testing.T) {
 	close(dk.UpdateChannel()) // TODO when closing channel it loses single update sometimes? Rework to not enable direct access to channel
 
 	current_value := dk.Get()
-	assert.True(t, current_value.Contains(&domain.IntElement{1}))
+	assert.True(t, current_value.Contains("1"))
 }
 
 func updateState(vk *CrdtValueKeeper, wg *sync.WaitGroup) {
