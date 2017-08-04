@@ -1,15 +1,6 @@
 import sys
-from requests import get
 
-def get_all_hosts(first_host):
-    result = get("{}/cluster/info".format(first_host))
-
-    if result.status_code != 200:
-        raise Exception("Wrong response from server: {}".format(result.status_code))
-
-    nodes = result.json()["Nodes"]
-    hosts = [node["Url"] for node in nodes] + [first_host]
-    return hosts
+from crdt_app.host_resolver import get_all_hosts
 
 
 def prepare_LB_config(hosts):

@@ -4,6 +4,8 @@ import threading
 import time
 from locust import HttpLocust, TaskSet, task
 from requests import get, post
+
+from crdt_app.data_consistency_test import test_data_consistency
 from hosts import host_resolver
 
 import sys
@@ -11,6 +13,7 @@ import sys
 from lwwes.lwwes import Lwwes
 
 passed_host = host_resolver.getHost(sys.argv)
+
 post("{}/status/reset".format(passed_host))
 
 def generate_request():
@@ -18,8 +21,8 @@ def generate_request():
     data = {"Value": {"Value": random.randint(0, 100)}, "Operation": operation}
     return data
 
+
 class CrdtTasks(TaskSet):
-    requests_count = 0
     lock = threading.Lock()
     lwwes = Lwwes()
 
@@ -40,22 +43,20 @@ class WebsiteUser(HttpLocust):
     max_wait = 1000
     host = passed_host
 
+
 def compare_results():
     print("Performance test ended")
-    time_to_wait = 2
+    time_to_wait = 3
     print("Waiting for {} seconds for results".format(time_to_wait))
     time.sleep(time_to_wait)
-    with CrdtTasks.lock:
-        requests_count = CrdtTasks.requests_count
-
-    print(requests_count, WebsiteUser.host)
-    current_value = get("{}/status/readable".format(WebsiteUser.host))
-    # current_value = int(.content) // TODO check state
-    # if current_value != requests_count:
-    #     raise Exception("Inconsistent system! Expected {} got {}".format(requests_count, current_value))
-    json_rs = current_value.json()
-    print("Number of values in result: {}".format(len(json_rs["Values"])))
+    test_data_consistency(WebsiteUser.host, sorted(CrdtTasks.lwwes.get()))
     print("Finish")
+
+
+def get_server_value(host):
+    current_value = get("{}/status/readable".format(host))
+    json_rs = current_value.json()
+    return sorted(list(map(lambda x: int(x), json_rs["Values"])))
 
 
 from locust.events import quitting
