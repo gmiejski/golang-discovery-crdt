@@ -1,4 +1,4 @@
-def getHost(argv):
+def getLocustHost(argv):
     print(argv)
     for idx in range(0, len(argv)):
         val = argv[idx]

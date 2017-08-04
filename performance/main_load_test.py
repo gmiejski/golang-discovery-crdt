@@ -5,16 +5,19 @@ import time
 from locust import HttpLocust, TaskSet, task
 from requests import get, post
 
+import crdt_app
 from crdt_app.data_consistency_test import test_data_consistency
-from hosts import host_resolver
+from hosts import locust_host_resolver
 
 import sys
 
 from lwwes.lwwes import Lwwes
+from crdt_app.host_resolver import get_all_hosts
 
-passed_host = host_resolver.getHost(sys.argv)
-
-post("{}/status/reset".format(passed_host))
+passed_host = locust_host_resolver.getLocustHost(sys.argv)
+for host in get_all_hosts(passed_host):
+    print("Resetting host {}".format(host))
+    post("{}/status/reset".format(host))
 
 def generate_request():
     operation = "ADD" if random.randint(0, 1) == 1 else "REMOVE"
