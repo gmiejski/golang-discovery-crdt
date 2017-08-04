@@ -1,5 +1,6 @@
 ## Prepare for running tests - setup load balancer
-* `python load_balancer/prepare_LB.py` 
+* Run any number of crdt-app nodes forming a cluster
+* `python load_balancer/prepare_LB.py single_node_host` with default to 'http://localhost:8080' 
 * `./load_balancer/start_nginx.sh`
 
 
