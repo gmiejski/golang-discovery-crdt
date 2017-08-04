@@ -5,14 +5,16 @@ import (
 	"org/miejski/domain"
 	"sync"
 	"github.com/stretchr/testify/assert"
+	"org/miejski/discovery"
 )
 
 var times int = 1000
 
 func TestCrdtConsistency(t *testing.T) {
 	// given
+	discovery_client := discovery.NewDiscoveryClient("host", "")
 	keeper := domain.UnsafeDomainKeeper()
-	dk := CreateSafeValueKeeper(&keeper)
+	dk := CreateSafeValueKeeper(keeper, &discovery_client)
 	var wg sync.WaitGroup
 
 	// when
@@ -24,7 +26,7 @@ func TestCrdtConsistency(t *testing.T) {
 	close(dk.UpdateChannel()) // TODO when closing channel it loses single update sometimes? Rework to not enable direct access to channel
 
 	current_value := dk.Get()
-	assert.True(t, current_value.Contains(&domain.IntElement{1}))
+	assert.True(t, current_value.Contains("1"))
 }
 
 func updateState(vk *CrdtValueKeeper, wg *sync.WaitGroup) {

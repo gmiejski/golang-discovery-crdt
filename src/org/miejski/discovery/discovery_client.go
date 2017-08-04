@@ -19,7 +19,10 @@ type DiscoveryClient interface {
 
 func NewDiscoveryClient(thisUrl string, joinAddress string) DiscoveryClient {
 	nodes := make([]AppNode, 0)
-	client := inMemoryDiscoveryClient{info: AppNode{Url: thisUrl}, Nodes: nodes}
+	http_client := http.Client{
+		Timeout: time.Second * 4,
+	}
+	client := inMemoryDiscoveryClient{info: AppNode{Url: thisUrl}, Nodes: nodes, client: &http_client}
 	if joinAddress != "" {
 		fmt.Println(fmt.Sprintf("Joining cluster at: %s", joinAddress))
 		client.updateClusterInfo(joinAddress)
@@ -32,6 +35,7 @@ type inMemoryDiscoveryClient struct {
 	info  AppNode
 	Nodes []AppNode
 	l     sync.Mutex
+	client *http.Client
 }
 
 func (dc *inMemoryDiscoveryClient) ChangeStatus(node_url string, last_time_seen time.Time, new_state State) {
@@ -45,7 +49,7 @@ func (dc *inMemoryDiscoveryClient) ChangeStatus(node_url string, last_time_seen 
 }
 
 func (client *inMemoryDiscoveryClient) updateClusterInfo(joinAddress string) {
-	cluster_info := getClusterInfo(joinAddress)
+	cluster_info := client.getClusterInfo(joinAddress)
 	nodes := make([]AppNode, 0)
 	for _, node := range cluster_info.Nodes {
 		if node.Url != client.info.Url {
@@ -56,10 +60,10 @@ func (client *inMemoryDiscoveryClient) updateClusterInfo(joinAddress string) {
 	client.Nodes = nodes
 }
 
-func getClusterInfo(joinAddress string) ClusterStatus {
+func (client *inMemoryDiscoveryClient) getClusterInfo(joinAddress string) ClusterStatus {
 	rq, _ := http.NewRequest(http.MethodGet, joinAddress+"/cluster/info", nil)
-	client := http.Client{}
-	rs, _ := client.Do(rq)
+
+	rs, _ := client.client.Do(rq)
 
 	var value ClusterStatus
 	simple_json.Unmarshal(rs.Body, &value)
@@ -75,7 +79,7 @@ func (client *inMemoryDiscoveryClient) RegisterHeartbeat(node_info HeartbeatInfo
 	defer client.l.Unlock()
 	exists, node := client.containsNode(node_info.Url)
 	if exists {
-		fmt.Println(fmt.Sprintf("Marking node as ALIVE: %s", node.Url))
+		//fmt.Println(fmt.Sprintf("Marking node as ALIVE: %s", node.Url))
 		client.ChangeStatus(node.Url, node.LastUpdate, ACTIVE)
 	} else {
 		node := AppNode{Url: node_info.Url, State: ACTIVE, LastUpdate: time.Now()}
@@ -99,10 +103,11 @@ func (client *inMemoryDiscoveryClient) ClusterInfo() ClusterStatus {
 }
 
 func (client *inMemoryDiscoveryClient) CurrentActiveNodes() []AppNode {
+	nodes := client.AllNodes()
 	client.l.Lock()
 	defer client.l.Unlock()
 	result := make([]AppNode, 0)
-	for _, v := range client.AllNodes() {
+	for _, v := range nodes {
 		if v.State == ACTIVE {
 			result = append(result, v)
 		}

@@ -69,3 +69,5 @@ performance/__pycache__/
 
 src/github.com
 src/org/miejski/my_test
+
+**/nginx_config.conf

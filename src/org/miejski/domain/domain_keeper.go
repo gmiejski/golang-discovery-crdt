@@ -3,20 +3,26 @@ package domain
 import (
 	"time"
 	"org/miejski/crdt"
+	"strconv"
 )
 
 type DomainKeeper interface {
 	Add(DomainUpdateObject)
 	Get() crdt.Lwwes
 	Reset()
-}
-
-func UnsafeDomainKeeper() DomainKeeper {
-	return &unsafeDomainKeeper{crdt.CreateLwwes()}
+	Set(lwwes crdt.Lwwes)
 }
 
 type unsafeDomainKeeper struct {
 	value crdt.Lwwes
+}
+
+func (dk *unsafeDomainKeeper) Set(lwwes crdt.Lwwes) {
+	dk.value = lwwes
+}
+
+func UnsafeDomainKeeper() DomainKeeper {
+	return &unsafeDomainKeeper{crdt.CreateLwwes()}
 }
 
 func (dk *unsafeDomainKeeper) Add(val DomainUpdateObject) {
@@ -24,12 +30,12 @@ func (dk *unsafeDomainKeeper) Add(val DomainUpdateObject) {
 	case ADD:
 		{
 			value := (*dk).value
-			value.Add(IntElement{val.Value}, time.Now())
+			value.Add(strconv.Itoa(val.Value), time.Now())
 		}
 	case REMOVE:
 		{
 			value := (*dk).value
-			value.Remove(IntElement{val.Value}, time.Now())
+			value.Remove(strconv.Itoa(val.Value), time.Now())
 		}
 	}
 }
