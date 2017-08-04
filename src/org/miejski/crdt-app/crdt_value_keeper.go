@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"fmt"
 	"org/miejski/simple_json"
+	"time"
 )
 
 type CrdtValueKeeper interface {
@@ -25,6 +26,7 @@ type crdtValueKeeperImpl struct {
 	stateKeeper      *domain.DomainKeeper
 	update_channel   chan domain.DomainUpdateObject
 	lock             sync.Mutex
+	client           *http.Client
 }
 
 func (c *crdtValueKeeperImpl) synchronize() {
@@ -33,7 +35,7 @@ func (c *crdtValueKeeperImpl) synchronize() {
 		return
 	}
 	first_node := nodes[0]
-	lwwes := getState(first_node)
+	lwwes := c.getState(first_node)
 	c.Merge(lwwes)
 }
 
@@ -74,9 +76,12 @@ func (c *crdtValueKeeperImpl) updateNotSafe(lwwes crdt.Lwwes) {
 }
 
 func CreateSafeValueKeeper(dk domain.DomainKeeper, ds *discovery.DiscoveryClient) CrdtValueKeeper {
+	http_client := http.Client{
+		Timeout: time.Second * 4,
+	}
 	channel := make(chan domain.DomainUpdateObject)
 
-	k := crdtValueKeeperImpl{stateKeeper: &dk, update_channel: channel, discovery_client: ds}
+	k := crdtValueKeeperImpl{stateKeeper: &dk, update_channel: channel, discovery_client: ds, client: &http_client}
 	go func() {
 		for {
 			x, ok := <-channel
@@ -89,36 +94,34 @@ func CreateSafeValueKeeper(dk domain.DomainKeeper, ds *discovery.DiscoveryClient
 
 			update_object, _ := json.Marshal(toCurrentStateDto(keeper.Get()))
 
-			fmt.Println("Im in")
-
 			nodes := (*k.discovery_client).CurrentActiveNodes()
-			for i := range nodes {
-				send(nodes[i], update_object)
-			}
 
 			k.lock.Unlock()
+			for i := range nodes {
+				k.send(nodes[i], update_object)
+			}
 		}
 	}()
 	return &k
 }
 
-func send(node discovery.AppNode, object []byte) {
+func (c *crdtValueKeeperImpl) send(node discovery.AppNode, object []byte) {
 	fmt.Println("sending lwwes after update to: " + node.Url)
-	client := http.Client{}
+
 	rq, _ := http.NewRequest("POST", node.Url+"/status/synchronize", bytes.NewBuffer(object))
-	rs, err := client.Do(rq)
+	rs, err := c.client.Do(rq)
 	if err != nil {
 		fmt.Println(err)
+		//fmt.Println(rs.Status)
+	} else {
 		fmt.Println(rs.Status)
 	}
-	fmt.Println(rs.Status)
 }
 
-func getState(node discovery.AppNode) crdt.Lwwes {
+func (c *crdtValueKeeperImpl) getState(node discovery.AppNode) crdt.Lwwes {
 	fmt.Println("sending lwwes after update to: " + node.Url)
-	client := http.Client{}
 	rq, _ := http.NewRequest("GET", node.Url+"/status", nil)
-	rs, err := client.Do(rq)
+	rs, err := c.client.Do(rq)
 	if err != nil {
 		fmt.Println(err)
 	}

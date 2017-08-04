@@ -13,7 +13,9 @@ type Heartbeater interface {
 }
 
 func CreateDiscoveryHeartbeater(dc *DiscoveryClient)Heartbeater {
-	client := http.Client{}
+	client := http.Client{
+		Timeout: time.Second * 4,
+	}
 	h := discoveryHeartbeater{dc,&client}
 	return &h
 }

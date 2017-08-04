@@ -84,12 +84,14 @@ func (s *Lwwes) GetNotWorkingImplementation() []Element {
 	return result
 }
 
-func (s *Lwwes) Get() []Element {
+func (s Lwwes) Get() []Element {
 	result := make([]Element, 0)
 	for added_element := range s.Add_set {
 		state, _ := s.elementInfo(added_element)
 		if state == ADDED {
 			result = append(result, added_element)
+		} else {
+			fmt.Sprintf("") // TODO remove
 		}
 	}
 	return result

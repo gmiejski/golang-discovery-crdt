@@ -8,7 +8,6 @@ import (
 	"time"
 	"encoding/json"
 	"org/miejski/crdt"
-	"strconv"
 	"org/miejski/simple_json"
 )
 
@@ -32,8 +31,8 @@ func newStateController(
 	go func() {
 		for {
 			doEvery(2*time.Second, func(t time.Time) {
-				value := (*stateKeeper).Get()
-				fmt.Println(fmt.Sprintf("Current value : #%v", value))
+				//value := (*stateKeeper).Get()
+				//fmt.Println(fmt.Sprintf("Current value : #%v", value))
 			})
 		}
 	}()
@@ -69,7 +68,7 @@ func (c *StateControllerImpl) Increment(w http.ResponseWriter, request *http.Req
 }
 
 func (c *StateControllerImpl) SynchronizeData(writer http.ResponseWriter, request *http.Request) {
-	fmt.Println("Synchronizing data!!!")
+	//fmt.Println("Synchronizing data!!!")
 	var coming_data CurrentStateDto
 	simple_json.Unmarshal(request.Body, &coming_data)
 	lwwes := lwwesFromDto(coming_data)
@@ -80,9 +79,7 @@ func toReadableState(lwwes crdt.Lwwes) ReadableState {
 	values := make([]string, 0)
 	elements := lwwes.Get()
 	for _, element := range elements {
-		val, _ := strconv.Atoi(element.Get())
-		intElement := domain.IntElement{Value: val}
-		values = append(values, strconv.Itoa(intElement.Value))
+		values = append(values, element.Get())
 	}
 	result := ReadableState{Values: values}
 	return result
